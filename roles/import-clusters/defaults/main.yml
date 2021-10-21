@@ -1,0 +1,9 @@
+# Switch to import or delete clusters
+# values present or absent
+setState: absent
+
+# Managed cluster name, number of cluster, context
+# cluster name: number of cluster
+clusters:
+  - {name: cluster1, count: "1", contexts: cluster1}
+  - {name: cluster2, count: "2", contexts: cluster2}

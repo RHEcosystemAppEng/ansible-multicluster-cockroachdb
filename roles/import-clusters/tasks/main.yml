@@ -1,0 +1,107 @@
+---
+- name: set default for state
+  set_fact: 
+    setState: present
+  when: setState is not defined
+
+- name: Create cockroachdb namespace for managed clusters
+  community.kubernetes.k8s:
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: "{{ item.name }}"
+      displayName: "{{ item.name }}"
+      kind: Project
+      metadata:
+          name: "{{ item.name }}"
+          labels: 
+            cluster.open-cluster-management.io/managedCluster: "{{ item.name }}"
+  loop: "{{ clusters }}"
+
+- name: Add clusters as managed clusters
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ item.name }}"
+      spec:
+        hubAcceptsClient: true
+  loop: "{{ clusters }}"
+
+- name: Create the klusterlet addon
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: agent.open-cluster-management.io/v1
+      kind: KlusterletAddonConfig
+      metadata:
+        name: "{{ item.name }}"
+        namespace: "{{ item.name }}"
+      spec:
+        clusterName: "{{ item.name }}"
+        clusterNamespace: "{{ item.name }}"
+        applicationManager:
+          enabled: true
+        certPolicyController:
+          enabled: true
+        clusterLabels:
+          cloud: auto-detect
+          vendor: auto-detect
+        iamPolicyController:
+          enabled: true
+        policyController:
+          enabled: true
+        searchCollector:
+          enabled: true
+        version: 2.2.0
+  loop: "{{ clusters }}"
+
+- name: Pause for import and klusterlet secrets to be created
+  pause:
+    seconds: 30
+  when: setState == "present"
+
+- name: Fetch import and klusterlet secrets for managed clusters
+  set_fact:
+    importSecret_{{ item.count }}: "{{ lookup('community.kubernetes.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
+    register: importSecret_{{ item.count }}
+  when:  setState == "present"
+  loop: "{{ clusters }}"
+
+- name: Create klusterlet CRD yaml in files directory
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + item.count]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
+  args:
+    creates: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
+  when:  setState == "present"
+  loop: "{{ clusters }}"
+
+- name: Create import yaml in files directory
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + item.count]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
+  args:
+    creates: "{{ role_path }}/files/{{ item.name }}-import.yaml"
+  when:  setState == "present"
+  loop: "{{ clusters }}"
+
+- name: Create klusterlet CRD on managed clusters
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: "{{item.contexts}}"
+    src: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
+  loop: "{{ clusters }}"
+
+- name: Import managed clusters
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.contexts }}"
+    src: "{{ role_path }}/files/{{ item.name }}-import.yaml"
+  loop: "{{ clusters }}"
+
+# - name: debug
+#   debug: 
+#     msg: "{{ item.name }}"
+#   loop: "{{ clusters }}"
