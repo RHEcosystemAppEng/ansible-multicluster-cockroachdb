@@ -1,0 +1,69 @@
+---
+- name: set default for state
+  set_fact: 
+    setState: present
+  when: setState is not defined
+
+- name: Create namespace for ACM (hub)
+  community.kubernetes.k8s:
+    state:  "{{ setState }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: hub
+      displayName: hub
+      kind: Project
+      metadata:
+          name: hub
+
+- name: Create OpenShift Container Platform pull secret
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    namespace: hub
+    src: "{{ role_path }}/files/{{ ocp_pull_secret }}"
+
+- name: Create operator group in hub namespace
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: hub-operator-group
+      spec:
+        targetNamespaces: 
+        - "hub"
+
+- name: Create ACM operator subscription
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: acm-operator-subscription
+      spec:
+        sourceNamespace: openshift-marketplace
+        source: redhat-operators
+        channel: release-2.3
+        installPlanApproval: Automatic
+        name: advanced-cluster-management
+
+- name: Pause for ACM subscription to be created
+  pause:
+    seconds: 5
+  when: setState == "present"
+
+- name: Create MultiClusterHub custom resource
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    namespace: hub
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        name: multiclusterhub
+        namespace: hub
+      spec:
+        imagePullSecret: "{{ ocp_pull_secret_name }}"

@@ -1,0 +1,50 @@
+---
+- name: set default for state
+  set_fact: 
+    setState: present
+  when: setState is not defined
+
+- name: set default for clusterSet Name
+  set_fact: 
+    clusterset_name: clusterset1
+  when: clusterset_name is not defined
+
+- name: Create managed cluster set 
+  community.kubernetes.k8s:
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterSet
+      metadata:
+        name: "{{ clusterset_name }}"
+
+- name: Create rules for RBAC ClusterRole
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: clusterrole1
+      rules:
+        - apiGroups: ["cluster.open-cluster-management.io"]
+          resources: ["managedclustersets/join"]
+          resourceNames: ["{{ clusterset_name }}"]
+          verbs: ["create"]
+
+- name: Create the cluster set
+  community.kubernetes.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ item.name }}"
+        labels:
+          cluster.open-cluster-management.io/clusterset: "{{ clusterset_name }}"
+      spec:
+        hubAcceptsClient: true
+  loop: "{{ clusters }}"

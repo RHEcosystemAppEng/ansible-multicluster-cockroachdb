@@ -2,4 +2,5 @@
 # values present or absent
 # setState: absent
 
-
+# ManagedClusterSet Name
+clusterset_name: cockroachdb-clusterset
