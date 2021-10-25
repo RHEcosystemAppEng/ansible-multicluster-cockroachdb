@@ -1,0 +1,9 @@
+# cluster name, cluster count, kubeconfig context
+# Example 
+# clusters:
+#   - {name: cluster1, count: "1", contexts: cluster1}
+#   - {name: cluster2, count: "2", contexts: cluster2}
+
+clusters:
+  - {name: ansible-managed-1, count: "1", contexts: ansible-managed-1}
+  - {name: ansible-managed-2, count: "2", contexts: ansible-managed-2}

@@ -63,7 +63,7 @@
 
 - name: Pause for import and klusterlet secrets to be created
   pause:
-    seconds: 30
+    seconds: 10
   when: setState == "present"
 
 - name: Fetch import and klusterlet secrets for managed clusters
@@ -94,14 +94,14 @@
     src: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
   loop: "{{ clusters }}"
 
+- name: Pause for klusterlet CRD to be created
+  pause:
+    seconds: 10
+  when: setState == "present"
+
 - name: Import managed clusters
   community.kubernetes.k8s:
     state: "{{ setState }}"
     context: "{{ item.contexts }}"
     src: "{{ role_path }}/files/{{ item.name }}-import.yaml"
   loop: "{{ clusters }}"
-
-# - name: debug
-#   debug: 
-#     msg: "{{ item.name }}"
-#   loop: "{{ clusters }}"
