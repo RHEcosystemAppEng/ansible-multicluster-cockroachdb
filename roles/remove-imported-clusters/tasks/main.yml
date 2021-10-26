@@ -1,5 +1,5 @@
 ---
-- name: Remove imported clusters managed clusters from hub
+- name: Remove imported managed clusters from hub
   kubernetes.core.k8s:
     state: absent
     context: hub
