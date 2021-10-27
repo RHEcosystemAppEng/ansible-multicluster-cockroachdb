@@ -80,4 +80,4 @@
         name: multiclusterhub
         namespace: hub
       spec:
-        imagePullSecret: "{{ ocp-pull-secret }}"
+        imagePullSecret: ocp-pull-secret
