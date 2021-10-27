@@ -12,3 +12,13 @@
         hubAcceptsClient: true
   loop: "{{ clusters }}"
   
+- name: Remove ManagedClusterSet from the hub
+  kubernetes.core.k8s:
+    state: absent
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterSet
+      metadata:
+        name: cockroachdb-clusterset
+      spec: {}

@@ -1,0 +1,7 @@
+---
+- name: Remove imported clusters
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - remove-imported-clusters
