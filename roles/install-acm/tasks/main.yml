@@ -50,10 +50,17 @@
         installPlanApproval: Automatic
         name: advanced-cluster-management
 
-- name: Pause for ACM operator to be installed
-  pause:
-    minutes: 2 
-  when: setState == "present"
+- name: Wait till the multicluster-operators-application is created
+  kubernetes.core.k8s_info:
+    kind: Deployment 
+    name: multicluster-operators-application
+    namespace: hub
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 300
+    wait_condition:
+      type: Available
+      status: True
 
 - name: Create MultiClusterHub custom resource
   kubernetes.core.k8s:
