@@ -5,7 +5,7 @@
   when: setState is not defined
 
 - name: Create cockroachdb namespace for managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state:  "{{ setState }}"
     context: hub
     definition:
@@ -20,7 +20,7 @@
   loop: "{{ clusters }}"
 
 - name: Add clusters as managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: "{{ setState }}"
     context: hub
     definition:
@@ -33,7 +33,7 @@
   loop: "{{ clusters }}"
 
 - name: Create the klusterlet addon
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: "{{ setState }}"
     context: hub
     definition:
@@ -68,7 +68,7 @@
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
-    importSecret_{{ item.count }}: "{{ lookup('community.kubernetes.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
+    importSecret_{{ item.count }}: "{{ lookup('kubernetes.core.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
     register: importSecret_{{ item.count }}
   when:  setState == "present"
   loop: "{{ clusters }}"
@@ -88,7 +88,7 @@
   loop: "{{ clusters }}"
 
 - name: Create klusterlet CRD on managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: "{{ setState }}"
     context: "{{item.contexts}}"
     src: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
@@ -100,7 +100,7 @@
   when: setState == "present"
 
 - name: Import managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: "{{ setState }}"
     context: "{{ item.contexts }}"
     src: "{{ role_path }}/files/{{ item.name }}-import.yaml"
