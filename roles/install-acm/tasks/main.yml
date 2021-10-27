@@ -17,13 +17,15 @@
 
 - name: Create OpenShift Container Platform pull secret
   kubernetes.core.k8s:
-    apiVersion: v1
-    kind: Secret
-    metadata:
-      name: ocp-pull-secret
-    data:
-      .dockerconfigjson: "{{ ocp_pull_secret }}"
-    type: kubernetes.io/dockerconfigjson
+    namespace: hub
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ocp-pull-secret
+      data:
+        .dockerconfigjson: "{{ ocp_pull_secret }}"
+      type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:
