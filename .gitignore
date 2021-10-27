@@ -6,3 +6,5 @@
 /roles/install-acm/files/*
 
 !/roles/install-acm/files/.gitkeep
+
+.DS_store
