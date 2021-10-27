@@ -7,3 +7,9 @@
 clusters:
   - {name: ansible-managed-1, count: "1", contexts: ansible-managed-1}
   - {name: ansible-managed-2, count: "2", contexts: ansible-managed-2}
+
+
+# OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
+# add .dockerconfigjson as value
+ocp_pull_secret:
+

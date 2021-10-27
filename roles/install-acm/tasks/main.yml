@@ -17,9 +17,13 @@
 
 - name: Create OpenShift Container Platform pull secret
   kubernetes.core.k8s:
-    state: "{{ setState }}"
-    namespace: hub
-    src: "{{ role_path }}/files/{{ ocp_pull_secret }}"
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ocp-pull-secret
+    data:
+      .dockerconfigjson: "{{ ocp_pull_secret }}"
+    type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:
@@ -73,4 +77,4 @@
         name: multiclusterhub
         namespace: hub
       spec:
-        imagePullSecret: "{{ ocp_pull_secret_name }}"
+        imagePullSecret: ocp-pull-secret
