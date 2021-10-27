@@ -18,6 +18,7 @@
 - name: Create OpenShift Container Platform pull secret
   kubernetes.core.k8s:
     namespace: hub
+    state: "{{ setState }}"
     definition:
       apiVersion: v1
       kind: Secret
