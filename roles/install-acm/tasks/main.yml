@@ -25,7 +25,7 @@
       metadata:
         name: ocp-pull-secret
       data:
-        .dockerconfigjson: "{{ ocp_pull_secret }}"
+        .dockerconfigjson: "{{ ocp_pull_secret | b64encode }}"
       type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
@@ -80,4 +80,4 @@
         name: multiclusterhub
         namespace: hub
       spec:
-        imagePullSecret: "{{ ocp-pull-secret | b64encode }}"
+        imagePullSecret: "{{ ocp-pull-secret }}"
