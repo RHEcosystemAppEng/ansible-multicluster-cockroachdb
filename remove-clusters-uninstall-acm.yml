@@ -1,0 +1,8 @@
+---
+- name: Remove imported clusters and uninstall acm
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - remove-imported-clusters
+    - uninstall-acm

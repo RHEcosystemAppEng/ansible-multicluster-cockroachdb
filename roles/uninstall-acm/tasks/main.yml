@@ -1,7 +1,8 @@
 ---
-- name: Remove MultiClusterHub custom resource
-  community.kubernetes.k8s:
+- name: Delete MultiClusterHub custom resource
+  kubernetes.core.k8s:
     state: absent
+    wait: yes
     namespace: hub
     definition:
       apiVersion: operator.open-cluster-management.io/v1
@@ -10,15 +11,61 @@
         name: multiclusterhub
         namespace: hub
       spec:
-        imagePullSecret: acm-test01-pull-secret # Variablize thus
+        imagePullSecret: ocp-pull-secret
 
-- name: Delete Hub namespace objects # Can this be cleaned up?
+
+- name: Delete operator group in hub namespace
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: hub-operator-group
+      spec:
+        targetNamespaces: 
+        - "hub"
+
+- name: Delete ACM operator subscription
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: acm-operator-subscription
+      spec:
+        sourceNamespace: openshift-marketplace
+        source: redhat-operators
+        channel: release-2.3
+        installPlanApproval: Automatic
+        name: advanced-cluster-management
+
+- name: Delete ClusterServiceVersion in hub
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: ClusterServiceVersion
+      metadata:
+        name: advanced-cluster-management.v2.3.3
+        namespace: hub
+      spec: {}
+
+- name: Delete PVCs, SVCs, Deploys, SAs, Secrets, Pods, and CMs and wait until they're deleted
   shell: |
-    /usr/local/bin/kubectl delete deploy,sa,svc,pvc,pod,cm,secret --all -n hub
+    /usr/local/bin/kubectl delete pvc,svc,deploy,sa,cm,pod,secret --all -n hub  --wait 
 
 - name: Delete namespace for ACM (hub)
   kubernetes.core.k8s:
     state: absent
+    wait: yes
     definition:
       apiVersion: project.openshift.io/v1
       description: hub
@@ -27,6 +74,31 @@
       metadata:
           name: hub
 
-- name: Delete CRDs # Can this be cleaned up?
+- name: Delete ACM CRD's
   shell: |
     /usr/local/bin/kubectl get crd | grep open-cluster-management.io | awk '{print $1}' | xargs /usr/local/bin/kubectl delete crd 
+
+# This is how I was trying to query the Kubernetes API to get a list of Service Accounts and Delete
+
+# - name: Get a list of all Service Accounts in the hub namespace.
+#   kubernetes.core.k8s_info:
+#     kind: ServiceAccount
+#     namespace: hub
+#   register: sa_list
+
+# - name: Delete Service Accounts from hub
+#   # shell: |
+#   #   /usr/local/bin/kubectl delete sa "{{ item.metadata.name }}" --wait -n hub
+#   kubernetes.core.k8s:
+#     state: absent
+#     wait: yes
+#     namespace: hub
+#     definition:
+#       apiVersion: "{{ item.apiVersion}}"
+#       kind: ServiceAccount
+#       metadata:
+#         name: "{{ item.metadata.name }}"
+#       imagePullSecrets: "{{ item.imagePullSecrets | to_nice_yaml( width=50, explicit_start=False, explicit_end=False)}}"
+#       secrets: "{{ item.secrets| to_nice_yaml( width=50, explicit_start=False, explicit_end=False) }}"
+        
+#   loop: "{{sa_list.resources}}"

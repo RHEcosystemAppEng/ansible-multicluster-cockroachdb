@@ -1,0 +1,15 @@
+---
+- name: set default for clusterSet Name
+  set_fact: 
+    clusterset_name: clusterset1
+  when: clusterset_name is not defined
+
+- name: Remove managed cluster set 
+  kubernetes.core.k8s:
+    state:  "absent"
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterSet
+      metadata:
+        name: "{{ clusterset_name }}"
