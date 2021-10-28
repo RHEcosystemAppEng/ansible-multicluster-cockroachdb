@@ -8,3 +8,11 @@ The automation will do the following:
 - Create the clusterSet on the ACM HUB cluster
 - Create the submariner add-on for the clusterSet
 - Deploy the cockroachdb multicluster setup
+
+   
+# Uninstall
+| Description | Command |
+| ----------- | ------- |
+Uninstall ACM | `ansible-playbook uninstall-acm.yml`   
+Remove Imported clusters | `ansible-playbook remove-import-clusters.yml`   
+Remove Imported Clusters and Uninstall ACM | `ansible-playbook remove-clusters-uninstall-acm.yml`   
