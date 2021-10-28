@@ -1,0 +1,48 @@
+---
+- name: set default for state
+  set_fact: 
+    setState: present
+  when: setState is not defined
+
+- name: Create secret for AWS credentials
+  kubernetes.core.k8s:
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+          name: "{{ item.name }}-aws-creds"
+          namespace: "{{ item.name }}"
+      type: Opaque
+      data:
+          aws_access_key_id: "{{ aws_access_key_id | b64encode }}"
+          aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
+  loop: "{{ clusters }}"
+
+- name: Create submariner addon
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-aws-creds"
+  loop: "{{ clusters }}"
+
+- name: Deploy Submariner on the managed clusters
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    definition:
+      apiVersion: addon.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterAddOn
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          installNamespace: submariner-operator
+  loop: "{{ clusters }}"
