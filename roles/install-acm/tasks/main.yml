@@ -25,7 +25,7 @@
       metadata:
         name: ocp-pull-secret
       data:
-        .dockerconfigjson: "{{ ocp_pull_secret | b64encode }}"
+        .dockerconfigjson: "{{ ocp_pull_secret }}"
       type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
