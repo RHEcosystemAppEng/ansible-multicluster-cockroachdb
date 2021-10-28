@@ -96,7 +96,7 @@
 
 - name: Pause for klusterlet CRD to be created
   pause:
-    seconds: 10
+    seconds: 20
   when: setState == "present"
 
 - name: Import managed clusters
