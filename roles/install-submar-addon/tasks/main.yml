@@ -6,6 +6,7 @@
 
 - name: Create secret for AWS credentials
   kubernetes.core.k8s:
+    wait: yes
     state:  "{{ setState }}"
     context: hub
     definition:
@@ -22,6 +23,7 @@
 
 - name: Create submariner addon
   kubernetes.core.k8s:
+    wait: yes
     state: "{{ setState }}"
     definition:
       apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
@@ -36,6 +38,7 @@
 
 - name: Deploy Submariner on the managed clusters
   kubernetes.core.k8s:
+    wait: yes
     state: "{{ setState }}"
     definition:
       apiVersion: addon.open-cluster-management.io/v1alpha1
