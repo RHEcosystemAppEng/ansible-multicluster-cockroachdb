@@ -1,0 +1,8 @@
+---
+- name: Install ACM and import clusters
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - install-acm
+    - import-clusters
