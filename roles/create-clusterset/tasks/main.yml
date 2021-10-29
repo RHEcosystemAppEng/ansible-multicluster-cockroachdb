@@ -11,6 +11,7 @@
 
 - name: Create managed cluster set 
   kubernetes.core.k8s:
+    wait: yes
     state:  "{{ setState }}"
     context: hub
     definition:
@@ -21,6 +22,7 @@
 
 - name: Create rules for RBAC ClusterRole
   kubernetes.core.k8s:
+    wait: yes
     state: "{{ setState }}"
     context: hub
     definition:
@@ -36,6 +38,7 @@
 
 - name: Create the cluster set
   kubernetes.core.k8s:
+    wait: yes
     state: "{{ setState }}"
     context: hub
     definition:
