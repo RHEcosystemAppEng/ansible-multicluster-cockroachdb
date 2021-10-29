@@ -1,4 +1,9 @@
 ---
+- name: Warn user that command will take a long time to uninstall
+  ansible.builtin.debug:
+    msg:
+    - "Deletion of ManagedClusters cleans namespaces on the manged clusters- could take up to 20 minutes, do not stop it once it starts"
+
 - name: Remove imported managed clusters from hub and wait
   shell: |
     /usr/local/bin/kubectl delete managedcluster "{{ item.name }}" -n hub --wait 

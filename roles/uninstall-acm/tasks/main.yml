@@ -1,17 +1,25 @@
 ---
+- name: Warn user that command will take a long time to uninstall
+  ansible.builtin.debug:
+    msg:
+    - "Deletion of MutliClusterHub could take up to 20 minutes"
+
 - name: Delete MultiClusterHub custom resource
-  kubernetes.core.k8s:
-    state: absent
-    wait: yes
-    namespace: hub
-    definition:
-      apiVersion: operator.open-cluster-management.io/v1
-      kind: MultiClusterHub
-      metadata:
-        name: multiclusterhub
-        namespace: hub
-      spec:
-        imagePullSecret: ocp-pull-secret
+  shell: |
+    "{{ kubectl }}" delete mch multiclusterhub -n hub --wait
+  # kubernetes.core.k8s:
+  #   state: absent
+  #   wait: yes
+  #   namespace: hub
+  #   definition:
+  #     apiVersion: operator.open-cluster-management.io/v1
+  #     kind: MultiClusterHub
+  #     metadata:
+  #       name: multiclusterhub
+  #       namespace: hub
+  #     spec:
+  #       imagePullSecret: ocp-pull-secret
+
 
 
 - name: Delete operator group in hub namespace
@@ -60,7 +68,7 @@
 
 - name: Delete PVCs, SVCs, Deploys, SAs, Secrets, Pods, and CMs and wait until they're deleted
   shell: |
-    /usr/local/bin/kubectl delete pvc,svc,deploy,sa,cm,pod,secret --all -n hub  --wait 
+    "{{ kubectl }}" delete pvc,svc,deploy,sa,cm,pod,secret --all -n hub  --wait 
 
 - name: Delete namespace for ACM (hub)
   kubernetes.core.k8s:
@@ -76,7 +84,7 @@
 
 - name: Delete ACM CRD's
   shell: |
-    /usr/local/bin/kubectl get crd | grep open-cluster-management.io | awk '{print $1}' | xargs /usr/local/bin/kubectl delete crd 
+    "{{ kubectl }}" get crd | grep open-cluster-management.io | awk '{print $1}' | xargs "{{ kubectl }}" delete crd 
 
 # This is how I was trying to query the Kubernetes API to get a list of Service Accounts and Delete
 
