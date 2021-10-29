@@ -1,14 +1,17 @@
 ---
 - name: Remove imported managed clusters from hub and wait
-  kubernetes.core.k8s:
-    state: absent
-    wait: yes
-    context: hub
-    definition:
-      apiVersion: cluster.open-cluster-management.io/v1
-      kind: ManagedCluster
-      metadata:
-        name: "{{ item.name }}"
-      spec:
-        hubAcceptsClient: true
+  shell: |
+    /usr/local/bin/kubectl delete managedcluster "{{ item.name }}" -n hub --wait 
+  # kubernetes.core.k8s:
+  #   state: absent
+  #   wait: yes
+  #   context: hub
+  #   definition:
+  #     apiVersion: cluster.open-cluster-management.io/v1
+  #     kind: ManagedCluster
+  #     metadata:
+  #       name: "{{ item.name }}"
+  #     spec:
+  #       hubAcceptsClient: true
   loop: "{{ clusters }}"
+
