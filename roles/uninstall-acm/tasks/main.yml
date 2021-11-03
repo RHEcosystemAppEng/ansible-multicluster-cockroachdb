@@ -2,23 +2,23 @@
 - name: Warn user that command will take a long time to uninstall
   ansible.builtin.debug:
     msg:
-    - "Deletion of MutliClusterHub could take up to 20 minutes"
+    - "Deletion of MultiClusterHub could take up to 25 minutes"
 
 - name: Delete MultiClusterHub custom resource
-  shell: |
-    "{{ kubectl }}" delete mch multiclusterhub -n hub --wait
-  # kubernetes.core.k8s:
-  #   state: absent
-  #   wait: yes
-  #   namespace: hub
-  #   definition:
-  #     apiVersion: operator.open-cluster-management.io/v1
-  #     kind: MultiClusterHub
-  #     metadata:
-  #       name: multiclusterhub
-  #       namespace: hub
-  #     spec:
-  #       imagePullSecret: ocp-pull-secret
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    wait_sleep: 30
+    wait_timeout: 1500 # Wait 25 mins
+    namespace: hub
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        name: multiclusterhub
+        namespace: hub
+      spec:
+        imagePullSecret: ocp-pull-secret
 
 
 
@@ -85,28 +85,3 @@
 - name: Delete ACM CRD's
   shell: |
     "{{ kubectl }}" get crd | grep open-cluster-management.io | awk '{print $1}' | xargs "{{ kubectl }}" delete crd 
-
-# This is how I was trying to query the Kubernetes API to get a list of Service Accounts and Delete
-
-# - name: Get a list of all Service Accounts in the hub namespace.
-#   kubernetes.core.k8s_info:
-#     kind: ServiceAccount
-#     namespace: hub
-#   register: sa_list
-
-# - name: Delete Service Accounts from hub
-#   # shell: |
-#   #   /usr/local/bin/kubectl delete sa "{{ item.metadata.name }}" --wait -n hub
-#   kubernetes.core.k8s:
-#     state: absent
-#     wait: yes
-#     namespace: hub
-#     definition:
-#       apiVersion: "{{ item.apiVersion}}"
-#       kind: ServiceAccount
-#       metadata:
-#         name: "{{ item.metadata.name }}"
-#       imagePullSecrets: "{{ item.imagePullSecrets | to_nice_yaml( width=50, explicit_start=False, explicit_end=False)}}"
-#       secrets: "{{ item.secrets| to_nice_yaml( width=50, explicit_start=False, explicit_end=False) }}"
-        
-#   loop: "{{sa_list.resources}}"
