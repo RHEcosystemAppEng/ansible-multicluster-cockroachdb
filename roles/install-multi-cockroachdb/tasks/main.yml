@@ -1,0 +1,196 @@
+---
+- name: set default for state
+  set_fact: 
+    setState: present
+  when: setState is not defined
+
+- name: set default for cockroach cli
+  set_fact: 
+    cockroach: /usr/local/bin/cockroach
+  when: cockroach is not defined
+
+- name: Create cockroachdb namespaces for managed clusters
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Create cockroachdb namespaces for hub channel
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+
+- name: Create directories needed for cockroachdb certs
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/{{ item }}"
+    state: directory
+  loop: 
+    - certs
+    - my-safe-directory
+
+- name: Create the CA certificate and key pair
+  ansible.builtin.command: "{{ cockroach }} cert create-ca --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/ca.crt"
+
+- name: Create a client certificate and key pair for the root user
+  ansible.builtin.command: "{{ cockroach }} cert create-client root --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/client.root.crt"
+
+- name: Fetch created client certificate and key pair
+  set_fact:
+    var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
+  loop:
+    - {file: ca.crt, name: ca_crt}
+    - {file: client.root.crt, name: client_root_crt}
+    - {file: client.root.key, name: client_root_key}
+
+- name: Create cockroachdb.client.root secret on managed clusters
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+      metadata:
+        name: cockroachdb.client.root
+        namespace: cockroachdb
+      type: Opaque
+  loop: "{{ clusters }}"
+
+- name: Create the certificate and key pair for your CockroachDB nodes
+  ansible.builtin.command: "{{ cockroach }} cert create-node localhost 127.0.0.1 cockroachdb-public cockroachdb-public.cockroachdb cockroachdb-public.cockroachdb.svc.cluster.local *.cockroachdb *.cockroachdb.cockroachdb *.cockroachdb.cockroachdb.svc.cluster.local --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/node.key"
+
+- name: Fetch created client certificate and key pair
+  set_fact:
+    var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
+  loop:
+    - {file: node.crt, name: node_crt}
+    - {file: node.key, name: node_key}
+
+- name: Create cockroachdb.node secret on managed clusters
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        node.crt: "{{ var_node_crt | b64encode }}"
+        node.key: "{{ var_node_key | b64encode }}"
+      metadata:
+        name: cockroachdb.node
+        namespace: cockroachdb
+      type: Opaque
+  loop: "{{ clusters }}"
+
+- name: Create the serviceExport for cockroachdb service
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: multicluster.x-k8s.io/v1alpha1
+      kind: ServiceExport
+      metadata:
+        name: cockroachdb
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Create channel for cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Channel
+      metadata:
+        name: cockroachdb-app-latest
+        namespace: cockroachdb
+      spec:
+        type: GitHub
+        pathname: "{{ app_repo }}"
+
+- name: Create cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: app.k8s.io/v1beta1
+      kind: Application
+      metadata:
+        name: cockroachdb-app
+        namespace: cockroachdb
+      spec:
+        componentKinds:
+        - group: apps.open-cluster-management.io
+          kind: Subscription
+        descriptor: {}
+        selector:
+          matchLabels:
+            app: cockroachdb-app
+
+- name: Create cockroachdb subscription in ACM
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Subscription
+      metadata:
+        name: cockroachdb-app
+        namespace: cockroachdb
+        labels:
+          app: cockroachdb-app
+        annotations:
+          apps.open-cluster-management.io/github-path: resources/cockroachdb
+          apps.open-cluster-management.io/git-branch: main
+      spec:
+        channel: cockroachdb/cockroachdb-app-latest
+        placement:
+          placementRef:
+            kind: PlacementRule
+            name: cockroachdb
+
+- name: Create cockroachdb placement rule in ACM
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: PlacementRule
+      metadata:
+        name: dev-clusters-east
+        namespace: default
+      spec:
+        clusterConditions:
+          - type: ManagedClusterConditionAvailable
+            status: "True"
+        clusterSelector:
+          matchLabels:
+            app: cockroachdb-app

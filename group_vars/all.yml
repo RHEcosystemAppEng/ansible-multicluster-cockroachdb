@@ -13,5 +13,8 @@ ocp_pull_secret:
 clusterset_name: 
 
 # AWS credentials
-aws_access_key_id:
+aws_access_key_id: 
 aws_secret_access_key: 
+
+# Application repo for cockroachdb
+app_repo: 

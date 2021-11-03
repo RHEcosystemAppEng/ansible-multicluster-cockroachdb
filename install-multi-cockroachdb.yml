@@ -1,0 +1,7 @@
+---
+- name: Install multicluster cockroach db
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - install-multi-cockroachdb

@@ -4,7 +4,7 @@
     setState: present
   when: setState is not defined
 
-- name: Create cockroachdb namespace for managed clusters
+- name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
     wait: yes 
     state:  "{{ setState }}"
@@ -29,10 +29,13 @@
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
       metadata:
+        labels:
+          app: cockroachdb-app
         name: "{{ item.name }}"
       spec:
         hubAcceptsClient: true
   loop: "{{ clusters }}"
+
 
 - name: Create the klusterlet addon
   kubernetes.core.k8s:

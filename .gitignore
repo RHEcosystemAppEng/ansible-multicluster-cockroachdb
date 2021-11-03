@@ -2,9 +2,11 @@
 
 !/roles/import-clusters/files/.gitkeep
 
-
 /roles/install-acm/files/*
 
 !/roles/install-acm/files/.gitkeep
 
 .DS_store
+
+*.crt
+*.key
