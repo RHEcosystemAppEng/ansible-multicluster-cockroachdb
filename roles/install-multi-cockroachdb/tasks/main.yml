@@ -99,25 +99,15 @@
       apiVersion: v1
       kind: Secret
       data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
         node.crt: "{{ var_node_crt | b64encode }}"
         node.key: "{{ var_node_key | b64encode }}"
       metadata:
         name: cockroachdb.node
         namespace: cockroachdb
       type: Opaque
-  loop: "{{ clusters }}"
-
-- name: Create the serviceExport for cockroachdb service
-  kubernetes.core.k8s:
-    wait: yes 
-    state:  "{{ setState }}"
-    context: "{{ item.contexts }}"
-    definition:
-      apiVersion: multicluster.x-k8s.io/v1alpha1
-      kind: ServiceExport
-      metadata:
-        name: cockroachdb
-        namespace: cockroachdb
   loop: "{{ clusters }}"
 
 - name: Create channel for cockroachdb application in ACM
@@ -175,7 +165,7 @@
         placement:
           placementRef:
             kind: PlacementRule
-            name: cockroachdb
+            name: cockroachdb-clusters
 
 - name: Create cockroachdb placement rule in ACM
   kubernetes.core.k8s:
@@ -185,8 +175,8 @@
       apiVersion: apps.open-cluster-management.io/v1
       kind: PlacementRule
       metadata:
-        name: dev-clusters-east
-        namespace: default
+        name: cockroachdb-clusters
+        namespace: cockroachdb
       spec:
         clusterConditions:
           - type: ManagedClusterConditionAvailable
@@ -194,3 +184,45 @@
         clusterSelector:
           matchLabels:
             app: cockroachdb-app
+
+- name: Wait till the cockroachdb-0 pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 300
+    wait_condition:
+      type: Initialized
+      status: True
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
+
+- name: Create the serviceExport for cockroachdb service
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: multicluster.x-k8s.io/v1alpha1
+      kind: ServiceExport
+      metadata:
+        name: cockroachdb
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.command: "kubectl exec --context {{ item.name }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  register: cockroachdb_join
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
+
+- name: Cockroachdb init output
+  debug: 
+    msg: "{{ cockroachdb_join }}"
