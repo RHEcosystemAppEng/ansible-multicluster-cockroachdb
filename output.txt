@@ -1,0 +1,108 @@
+start_time=`date +%s`
+ansible-playbook remove-submar-addon-uninstall-acm.yml
+end_time=`date +%s`
+echo execution time was `expr $end_time - $start_time` s.
+say `expr $end_time - $start_time` seconds
+[WARNING]: While constructing a mapping from /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/roles/remove-submar-addon/tasks/main.yml, line 4, column 5, found a duplicate dict key (state). Using last defined value only.
+
+PLAY [Remove submariner,remove clusterset, detach clusters, uninstall acm] *********************************************************************************************************************************************************************
+
+TASK [remove-submar-addon : Remove Submariner from the managed clusters] ***********************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+[WARNING]: Platform darwin on host localhost is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change the meaning of that path. See https://docs.ansible.com/ansible-
+core/2.11/reference_appendices/interpreter_discovery.html for more information.
+
+TASK [remove-submar-addon : Remove submariner addon] *******************************************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [remove-submar-addon : Remove secret for AWS credentials] *********************************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [remove-clusterset : set default for clusterSet Name] *************************************************************************************************************************************************************************************
+skipping: [localhost]
+
+TASK [remove-clusterset : Remove managed cluster set] ******************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [remove-clusterset : Remove RBAC ClusterRole] *********************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [remove-clusterset : Alert user clusterset has been deleted] ******************************************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Clusterset has been deleted"
+    ]
+}
+
+TASK [remove-imported-clusters : set default for state] ****************************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [remove-imported-clusters : Warn user that command will take a long time to uninstall] ****************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Deletion of ManagedClusters cleans namespaces on the managed clusters- could take up to 25 minutes"
+    ]
+}
+
+TASK [remove-imported-clusters : Remove imported managed clusters from hub and wait] ***********************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [remove-imported-clusters : Pause before uninstalling ACM] ********************************************************************************************************************************************************************************
+Pausing for 180 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [localhost]
+
+TASK [uninstall-acm : Warn user that command will take a long time to uninstall] ***************************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Deletion of MultiClusterHub could take up to 25 minutes"
+    ]
+}
+
+TASK [uninstall-acm : Delete MultiClusterHub custom resource] **********************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete operator group in hub namespace] **********************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete ACM operator subscription] ****************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete ClusterServiceVersion in hub] *************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete PVCs, SVCs, Deploys, SAs, Secrets, Pods, and CMs and wait until they're deleted] **********************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete namespace for ACM (hub)] ******************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Delete ACM CRD's] ********************************************************************************************************************************************************************************************************
+changed: [localhost]
+
+TASK [uninstall-acm : Wait for registry object bucket claim] ***********************************************************************************************************************************************************************************
+ok: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [uninstall-acm : Show Klusterlet_registry] ************************************************************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": [
+        "Klusterlet registry: {'results': [{'invocation': {'module_args': {'wait_sleep': 5, 'label_selectors': [], 'client_key': None, 'password': None, 'namespace': 'open-cluster-management-agent', 'api_key': None, 'client_cert': None, 'api_version': 'operator.open-cluster-management.io/v1', 'username': None, 'ca_cert': None, 'wait_condition': None, 'host': None, 'wait_timeout': 120, 'proxy': None, 'proxy_headers': None, 'persist_config': None, 'wait': False, 'kind': 'Klusterlet', 'field_selectors': [], 'name': 'klusterlet', 'kubeconfig': None, 'context': 'ansible-managed-1', 'validate_certs': None}}, 'changed': False, 'api_found': True, 'resources': [{'status': {'observedGeneration': 1, 'conditions': [{'status': 'True', 'lastTransitionTime': '2021-11-04T18:22:52Z', 'message': 'Failed to create &SelfSubjectAccessReview{ObjectMeta:{      0 0001-01-01 00:00:00 +0000 UTC <nil> <nil> map[] map[] [] []  []},Spec:SelfSubjectAccessReviewSpec{ResourceAttributes:&ResourceAttributes{Namespace:,Verb:create,Group:cluster.open-cluster-management.io,Version:,Resource:managedclusters,Subresource:,Name:,},NonResourceAttributes:nil,},Status:SubjectAccessReviewStatus{Allowed:false,Reason:,EvaluationError:,Denied:false,},} with bootstrap secret \"open-cluster-management-agent\" \"bootstrap-hub-kubeconfig\": Post \"https://api.acm-hub.kni.syseng.devcluster.openshift.com:6443/apis/authorization.k8s.io/v1/selfsubjectaccessreviews\": x509: certificate signed by unknown authority (possibly because of \"crypto/rsa: verification error\" while trying to verify candidate authority certificate \"kube-apiserver-lb-signer\")\\nFailed to get kubeconfig from `kubectl get secret -n \"open-cluster-management-agent\" \"hub-kubeconfig-secret\" -ojsonpath=\\'{.data.kubeconfig}\\'`. This is set by the klusterlet registration deployment, but the CSR must be approved by the cluster-admin on the hub.', 'type': 'KlusterletRegistrationDegraded', 'reason': 'BootstrapSecretError,HubKubeConfigMissing'}, {'status': 'True', 'lastTransitionTime': '2021-11-04T18:22:52Z', 'message': 'Failed to get kubeconfig from `kubectl get secret -n \"open-cluster-management-agent\" \"hub-kubeconfig-secret\" -ojsonpath=\\'{.data.kubeconfig}\\'`. This is set by the klusterlet registration deployment, but the CSR must be approved by the cluster-admin on the hub.\\n3 of requested instances are unavailable of deployment \"open-cluster-management-agent\" \"klusterlet-work-agent\"', 'type': 'KlusterletWorkDegraded', 'reason': 'HubKubeConfigMissing,UnavailablePods'}, {'status': 'True', 'lastTransitionTime': '2021-11-04T18:22:54Z', 'message': 'Klusterlet Component Applied', 'type': 'Applied', 'reason': 'KlusterletApplied'}], 'generations': [{'resource': 'deployments', 'name': 'klusterlet-registration-agent', 'lastGeneration': 1, 'namespace': 'open-cluster-management-agent', 'version': 'v1', 'group': 'apps'}, {'resource': 'deployments', 'name': 'klusterlet-work-agent', 'lastGeneration': 1, 'namespace': 'open-cluster-management-agent', 'version': 'v1', 'group': 'apps'}]}, 'kind': 'Klusterlet', 'spec': {'clusterName': 'ansible-managed-1', 'registrationImagePullSpec': 'registry.redhat.io/rhacm2/registration-rhel8@sha256:e19fb790cc1bbac9b810b3df9026e4a2f19168d97ef3876219d22236e35047ad', 'namespace': 'open-cluster-management-agent', 'workImagePullSpec': 'registry.redhat.io/rhacm2/work-rhel8@sha256:b6606f6bb6504acfb48f13cd5296473c17088caf380097ff7ce316f781c4f196'}, 'apiVersion': 'operator.open-cluster-management.io/v1', 'metadata': {'name': 'klusterlet', 'generation': 1, 'finalizers': ['operator.open-cluster-management.io/klusterlet-cleanup'], 'resourceVersion': '75645', 'creationTimestamp': '2021-11-04T18:22:52Z', 'managedFields': [{'fieldsV1': {'f:spec': {'f:registrationImagePullSpec': {}, '.': {}, 'f:workImagePullSpec': {}, 'f:clusterName': {}, 'f:namespace': {}}}, 'apiVersion': 'operator.open-cluster-management.io/v1', 'manager': 'OpenAPI-Generator', 'time': '2021-11-04T18:22:52Z', 'operation': 'Update', 'fieldsType': 'FieldsV1'}, {'fieldsV1': {'f:metadata': {'f:finalizers': {'v:\"operator.open-cluster-management.io/klusterlet-cleanup\"': {}, '.': {}}}, 'f:status': {'f:generations': {}, 'f:conditions': {}, 'f:observedGeneration': {}, '.': {}}}, 'apiVersion': 'operator.open-cluster-management.io/v1', 'manager': 'registration-operator', 'time': '2021-11-04T18:22:54Z', 'operation': 'Update', 'fieldsType': 'FieldsV1'}], 'selfLink': '/apis/operator.open-cluster-management.io/v1/klusterlets/klusterlet', 'uid': '1aa742f8-c239-40c6-b703-af7ecf5068a1'}}], 'failed': False, 'item': {'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'}, 'ansible_loop_var': 'item'}], 'skipped': False, 'msg': 'All items completed', 'changed': False}"
+    ]
+}
+
+TASK [uninstall-acm : Remove Klusterlet CR from the managedcluster in namespace open-cluster-management-agent] *********************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [uninstall-acm : Delete ClusterRoles] *****************************************************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [uninstall-acm : Delete ClusterRoleBindings] **********************************************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+TASK [uninstall-acm : Delete Klusterlet CRDs] **************************************************************************************************************************************************************************************************
+changed: [localhost] => (item={'name': 'ansible-managed-1', 'count': '1', 'contexts': 'ansible-managed-1'})
+
+PLAY RECAP *************************************************************************************************************************************************************************************************************************************
+localhost                  : ok=24   changed=17   unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+execution time was 1053 s.
