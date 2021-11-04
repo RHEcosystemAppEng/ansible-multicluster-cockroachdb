@@ -1,9 +1,38 @@
 ---
-- name: Create secret for AWS credentials
-  state: absent
-  wait: yes
+- name: Remove Submariner from the managed clusters
   kubernetes.core.k8s:
-    state:  "{{ setState }}"
+    state: absent
+    wait: yes
+    state: absent
+    definition:
+      apiVersion: addon.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterAddOn
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          installNamespace: submariner-operator
+  loop: "{{ clusters }}"
+
+- name: Remove submariner addon
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-aws-creds"
+  loop: "{{ clusters }}"
+
+- name: Remove secret for AWS credentials
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
     context: hub
     definition:
       apiVersion: v1
@@ -17,33 +46,3 @@
           aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
   loop: "{{ clusters }}"
 
-- name: Create submariner addon
-  state: absent
-  wait: yes
-  kubernetes.core.k8s:
-    state: "{{ setState }}"
-    definition:
-      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
-      kind: SubmarinerConfig
-      metadata:
-          name: submariner
-          namespace: "{{ item.name }}"
-      spec:
-          credentialsSecret:
-            name: "{{ item.name }}-aws-creds"
-  loop: "{{ clusters }}"
-
-- name: Deploy Submariner on the managed clusters
-  state: absent
-  wait: yes
-  kubernetes.core.k8s:
-    state: "{{ setState }}"
-    definition:
-      apiVersion: addon.open-cluster-management.io/v1alpha1
-      kind: ManagedClusterAddOn
-      metadata:
-          name: submariner
-          namespace: "{{ item.name }}"
-      spec:
-          installNamespace: submariner-operator
-  loop: "{{ clusters }}"
