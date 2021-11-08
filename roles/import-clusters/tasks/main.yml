@@ -8,7 +8,7 @@
   kubernetes.core.k8s:
     wait: yes 
     state:  "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: project.openshift.io/v1
       description: "{{ item.name }}"
@@ -24,7 +24,7 @@
   kubernetes.core.k8s:
     wait: yes
     state: "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
@@ -41,7 +41,7 @@
   kubernetes.core.k8s:
     wait: yes
     state: "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: agent.open-cluster-management.io/v1
       kind: KlusterletAddonConfig
@@ -103,7 +103,7 @@
 
 - name: Pause for klusterlet CRD to be created
   pause:
-    seconds: 20
+    seconds: 60
   when: setState == "present"
 
 - name: Import managed clusters
