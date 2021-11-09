@@ -140,7 +140,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: cockroachdb
-  namespace: cockroachdb
+  namespace: cluster2
 spec:
   serviceName: "cockroachdb"
   replicas: 3
@@ -250,8 +250,8 @@ spec:
             --certs-dir /cockroach/cockroach-certs
             --advertise-host $(hostname -f)
             --http-addr 0.0.0.0
-            --join cockroachdb-0.cockroachdb.cockroachdb,cockroachdb-1.cockroachdb.cockroachdb,cockroachdb-2.cockroachdb.cockroachdb
-            --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
+            --join cockroachdb-0.cockroachdb.cluster1,cockroachdb-1.cockroachdb.cluster1,cockroachdb-2.cockroachdb.cluster1,cockroachdb-0.cockroachdb.cluster2,cockroachdb-1.cockroachdb.cluster2,cockroachdb-2.cockroachdb.cluster2
+            --locality=region=cluster2,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
       # No pre-stop hook is required, a SIGTERM plus some time is all that's
