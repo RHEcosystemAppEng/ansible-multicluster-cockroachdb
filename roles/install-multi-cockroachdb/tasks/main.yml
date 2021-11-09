@@ -21,11 +21,6 @@
     dest: "{{ playbook_dir }}/resources/cockroachdb/{{ item.gitbranch }}/cockroachdb-statefulset-secure.yaml"
   loop: "{{ clusters }}"
 
-- name: set default for state
-  set_fact: 
-    gitadd: "{{ playbook_dir }}/resources/cockroachdb/"
-  when: setState is not defined
-
 - name: git push
   include_role:
     name: ansible-git
