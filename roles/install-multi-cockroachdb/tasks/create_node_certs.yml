@@ -1,0 +1,73 @@
+---
+
+- name: set default for cockroach cli
+  set_fact: 
+    cockroach: /usr/local/bin/cockroach
+  when: cockroach is not defined
+
+- name: Cockroachdb nodecerts
+  debug: 
+    msg: "{{ item.gitbranch }}"
+
+- name: Fetch created client certificate and key pair
+  set_fact:
+    var_{{ certs.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ certs.file }}') }}"
+  loop:
+    - {file: ca.crt, name: ca_crt}
+    - {file: client.root.crt, name: client_root_crt}
+    - {file: client.root.key, name: client_root_key}
+  loop_control:
+    loop_var: certs
+
+- name: Create the certificate and key pair for your CockroachDB nodes
+  ansible.builtin.command: "{{ cockroach }} cert create-node localhost 127.0.0.1 cockroachdb-public cockroachdb-public.{{ item.gitbranch }} cockroachdb-public.{{ item.gitbranch }}.svc.cluster.local *.cockroachdb *.cockroachdb.{{ item.gitbranch }} *.cockroachdb.{{ item.gitbranch }}.svc.cluster.local --certs-dir={{ role_path }}/files/certs --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+
+- name: Fetch created node client certificate
+  set_fact:
+    cert_{{ item.gitbranch }}: "{{ lookup('file', '{{ role_path }}/files/certs/node.crt') }}"
+
+- name: Fetch created node client key
+  set_fact:
+    key_{{ item.gitbranch }}: "{{ lookup('file', '{{ role_path }}/files/certs/node.key') }}"
+
+- name: Cockroachdb nodecerts
+  debug: 
+    msg: "{{ var_ca_crt }}"
+
+- name: Create cockroachdb.node secret on managed item
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.gitbranch.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+        node.crt: "{{ vars['cert_' + item.gitbranch] | b64encode }}"
+        node.key: "{{ vars['key_' + item.gitbranch] | b64encode }}"
+      metadata:
+        name: cockroachdb.node
+        namespace: "{{ item.gitbranch }}"
+      type: Opaque
+
+- name: Copy node cert to folder
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/certs/node.crt"
+    dest: "{{ role_path }}/files/certs/{{ item.gitbranch }}/node.crt"
+
+- name: Copy node key to folder
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/certs/node.key"
+    dest: "{{ role_path }}/files/certs/{{ item.gitbranch }}/node.key"
+
+- name: Remove node key
+  ansible.builtin.file: 
+    path: "{{ role_path }}/files/certs/node.key"
+    state: absent
+
+- name: Remove node cert
+  ansible.builtin.file: 
+    path: "{{ role_path }}/files/certs/node.crt"
+    state: absent
