@@ -4,27 +4,23 @@
 #   - {name: cluster1, count: "1", contexts: cluster1}
 #   - {name: cluster2, count: "2", contexts: cluster2}
 
-clusters:
-    - {name: us-east-2, count: "1", contexts: us-east-2, gitbranch: cluster1}
-    - {name: us-west-2, count: "2", contexts: us-west-2, gitbranch: cluster2}
-
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: hub
+hub_context: 
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add .dockerconfigjson as value
-ocp_pull_secret: test
+ocp_pull_secret: 
 
 # ManagedClusterSet Name
-clusterset_name: cockroachdb-clusterset
+clusterset_name: 
 
 # AWS credentials
-aws_access_key_id: test
-aws_secret_access_key: test
+aws_access_key_id: 
+aws_secret_access_key: 
 
 # Set cockroachdb cli path if needed default /usr/local/bin/cockroach
 # cockroach:
 
-# Application repo for cockroachdb
-app_repo: https://github.com/RHEcosystemAppEng/ansible-multicluster-cockroachdb.git
+# Application repo for cockroachdb 
+app_repo: 
