@@ -1,0 +1,26 @@
+# cluster name, cluster count, kubeconfig context
+# Example 
+# clusters:
+#   - {name: cluster1, count: "1", contexts: cluster1}
+#   - {name: cluster2, count: "2", contexts: cluster2}
+
+
+# Hub context - set to the name of cluster for ACM and hub install
+hub_context: 
+
+# OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
+# add .dockerconfigjson as value
+ocp_pull_secret: 
+
+# ManagedClusterSet Name
+clusterset_name: 
+
+# AWS credentials
+aws_access_key_id: 
+aws_secret_access_key: 
+
+# Set cockroachdb cli path if needed default /usr/local/bin/cockroach
+# cockroach:
+
+# Application repo for cockroachdb 
+app_repo:
