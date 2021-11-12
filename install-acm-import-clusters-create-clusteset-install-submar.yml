@@ -1,0 +1,16 @@
+---
+- name: Install ACM and import clusters
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - install-acm
+    - import-clusters
+    - create-clusterset
+    - install-submar-addon
+
+# start_time=`date +%s`
+# ansible-playbook install-acm-import-clusters.yml
+# end_time=`date +%s`
+# echo execution time was `expr $end_time - $start_time` s.
+# say `expr $end_time - $start_time` seconds

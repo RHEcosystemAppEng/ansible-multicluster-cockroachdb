@@ -4,9 +4,10 @@
     setState: present
   when: setState is not defined
 
-- name: Create namespace for ACM (hub)
+- name: Create namespace for ACM
   kubernetes.core.k8s:
     wait: yes
+    context: "{{ hub_context }}"
     state:  "{{ setState }}"
     definition:
       apiVersion: project.openshift.io/v1
@@ -19,6 +20,7 @@
 - name: Create OpenShift Container Platform pull secret
   kubernetes.core.k8s:
     wait: yes
+    context: "{{ hub_context }}"
     namespace: hub
     state: "{{ setState }}"
     definition:
@@ -33,6 +35,7 @@
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:
     wait: yes
+    context: "{{ hub_context }}"
     state: "{{ setState }}"
     namespace: hub
     definition:
@@ -47,6 +50,7 @@
 - name: Create ACM operator subscription
   kubernetes.core.k8s:
     wait: yes
+    context: "{{ hub_context }}"
     state: "{{ setState }}"
     namespace: hub
     definition:
@@ -67,6 +71,7 @@
     name: multicluster-operators-application
     namespace: hub
     wait: yes
+    context: "{{ hub_context }}"
     wait_sleep: 10
     wait_timeout: 300
     wait_condition:
@@ -76,6 +81,7 @@
 - name: Create MultiClusterHub custom resource
   kubernetes.core.k8s:
     wait: yes
+    context: "{{ hub_context }}"
     state: "{{ setState }}"
     namespace: hub
     definition:

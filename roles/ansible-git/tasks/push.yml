@@ -1,0 +1,57 @@
+
+---
+- include_tasks: unpack.yml
+
+- name: git add all new files
+  ansible.builtin.shell: "git add -- {{ playbook_dir }}/resources/cockroachdb/"
+
+- name: git status
+  ansible.builtin.shell: git status
+  register: git_add_status
+
+- name: Check statefulsets have been added to staged
+  set_fact: 
+    checkgit: "{{ git_add_status.stdout_lines | regex_search('new file:   resources/cockroachdb/(.*)/cockroachdb-statefulset-secure.yaml') }}"
+
+- name: Warning message
+  debug:
+    msg: No statefulset changes have been staged in git skipping commit and push
+  when: checkgit == ""
+
+- name: git username
+  ansible.builtin.shell: git config user.name "{{ git_username }}"
+  when: 
+    - git_username is defined
+    - checkgit != ""
+
+- name: git email
+  ansible.builtin.shell: git config user.email "{{ git_email }}"
+  when: 
+    - git_email is defined
+    - when: checkgit != ""
+
+- name: git commit
+  ansible.builtin.shell: git commit -m "'{{ git_msg }}'"
+  ignore_errors: true
+  when: checkgit != ""
+
+- name: git wrapper
+  ansible.builtin.copy:
+    dest: "{{ playbook_dir }}/.ssh/ssh"
+    content: "ssh -i {{ git_temp_file.path }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $*"
+    mode: 0700
+  when: checkgit != ""
+
+- name: git push
+  ansible.builtin.shell: git push --force
+  environment:
+    GIT_SSH: "{{ playbook_dir }}/.ssh/ssh"
+  when: checkgit != ""
+
+- name: git status
+  ansible.builtin.shell: git status
+  register: git_add_status
+  when: checkgit != ""
+
+- include_tasks: cleanup_keys.yml
+  when: checkgit != ""

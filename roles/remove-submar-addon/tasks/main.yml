@@ -3,7 +3,6 @@
   kubernetes.core.k8s:
     state: absent
     wait: yes
-    state: absent
     definition:
       apiVersion: addon.open-cluster-management.io/v1alpha1
       kind: ManagedClusterAddOn

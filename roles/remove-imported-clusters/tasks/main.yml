@@ -10,7 +10,7 @@
     - "Deletion of ManagedClusters cleans namespaces on the managed clusters- could take up to 25 minutes"
 
 - name: Remove imported managed clusters from hub and wait 
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: absent
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
