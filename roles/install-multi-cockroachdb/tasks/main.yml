@@ -44,7 +44,7 @@
   kubernetes.core.k8s:
     wait: yes 
     state:  "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: project.openshift.io/v1
       description: cockroachdb
@@ -110,7 +110,7 @@
   kubernetes.core.k8s:
     wait: yes
     state:  "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: Channel
@@ -125,7 +125,7 @@
   kubernetes.core.k8s:
     wait: yes
     state: "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: app.k8s.io/v1beta1
       kind: Application
@@ -144,7 +144,7 @@
 - name: Create cockroachdb subscription in ACM
   kubernetes.core.k8s:
     state: "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: Subscription
@@ -166,7 +166,7 @@
 - name: Create cockroachdb placement rule in ACM
   kubernetes.core.k8s:
     state: "{{ setState }}"
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: PlacementRule
