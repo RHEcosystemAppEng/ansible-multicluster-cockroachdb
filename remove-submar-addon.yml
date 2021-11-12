@@ -1,0 +1,7 @@
+---
+- name: Install submariner addon
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - remove-submar-addon

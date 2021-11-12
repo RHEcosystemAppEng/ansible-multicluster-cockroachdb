@@ -1,0 +1,39 @@
+---
+- name: set default for clusterSet Name
+  set_fact: 
+    clusterset_name: clusterset1
+  when: clusterset_name is not defined
+
+- name: Remove managed cluster set 
+  community.kubernetes.k8s:
+    state: absent
+    wait: yes
+    wait_sleep: 30 # Check every 30 seconds
+    wait_timeout: 1500 # Wait 25 mins max
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterSet
+      metadata:
+        name: "{{ clusterset_name }}"
+
+- name: Remove RBAC ClusterRole
+  kubernetes.core.k8s:
+    state: absent
+    context: hub
+    wait: yes
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: clusterrole1
+      rules:
+        - apiGroups: ["cluster.open-cluster-management.io"]
+          resources: ["managedclustersets/join"]
+          resourceNames: ["{{ clusterset_name }}"]
+          verbs: ["create"]
+
+- name: Alert user clusterset has been deleted
+  ansible.builtin.debug:
+    msg:
+    - "Clusterset has been deleted"

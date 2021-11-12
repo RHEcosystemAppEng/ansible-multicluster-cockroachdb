@@ -1,0 +1,156 @@
+---
+- name: set default for cockroach cli
+  set_fact: 
+    cockroach: /usr/local/bin/cockroach
+  when: cockroach is not defined
+
+- name: Delete the serviceExport for cockroachdb service
+  kubernetes.core.k8s:
+    wait: yes 
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: multicluster.x-k8s.io/v1alpha1
+      kind: ServiceExport
+      metadata:
+        name: cockroachdb
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Delete cockroachdb subscription in ACM
+  kubernetes.core.k8s:
+    state: absent
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Subscription
+      metadata:
+        name: cockroachdb-app
+        namespace: cockroachdb
+        labels:
+          app: cockroachdb-app
+        annotations:
+          apps.open-cluster-management.io/github-path: resources/cockroachdb
+          apps.open-cluster-management.io/git-branch: main
+      spec:
+        channel: cockroachdb/cockroachdb-app-latest
+        placement:
+          placementRef:
+            kind: PlacementRule
+            name: cockroachdb-clusters
+        
+- name: Delete cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state: absent
+    context: hub
+    definition:
+      apiVersion: app.k8s.io/v1beta1
+      kind: Application
+      metadata:
+        name: cockroachdb-app
+        namespace: cockroachdb
+      spec:
+        componentKinds:
+        - group: apps.open-cluster-management.io
+          kind: Subscription
+        descriptor: {}
+        selector:
+          matchLabels:
+            app: cockroachdb-app
+
+- name: Delete channel for cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state: absent
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Channel
+      metadata:
+        name: cockroachdb-app-latest
+        namespace: cockroachdb
+      spec:
+        type: GitHub
+        pathname: "{{ app_repo }}"
+
+- name: Delete cockroachdb placement rule in ACM
+  kubernetes.core.k8s:
+    state: absent
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: PlacementRule
+      metadata:
+        name: cockroachdb-clusters
+        namespace: cockroachdb
+      spec:
+        clusterConditions:
+          - type: ManagedClusterConditionAvailable
+            status: "True"
+        clusterSelector:
+          matchLabels:
+            app: cockroachdb-app
+
+- name: Delete cockroachdb.node secret on managed clusters
+  kubernetes.core.k8s:
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+        node.crt: "{{ var_node_crt | b64encode }}"
+        node.key: "{{ var_node_key | b64encode }}"
+      metadata:
+        name: cockroachdb.node
+        namespace: cockroachdb
+      type: Opaque
+  loop: "{{ clusters }}"
+
+- name: Delete cockroachdb.client.root secret on managed clusters
+  kubernetes.core.k8s:
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+      metadata:
+        name: cockroachdb.client.root
+        namespace: cockroachdb
+      type: Opaque
+  loop: "{{ clusters }}"
+
+- name: Delete cockroachdb namespaces for managed clusters
+  kubernetes.core.k8s:
+    wait: yes 
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Delete cockroachdb namespaces for hub channel
+  kubernetes.core.k8s:
+    wait: yes 
+    state: absent
+    context: hub
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
