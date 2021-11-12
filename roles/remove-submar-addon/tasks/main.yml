@@ -1,0 +1,48 @@
+---
+- name: Remove Submariner from the managed clusters
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    state: absent
+    definition:
+      apiVersion: addon.open-cluster-management.io/v1alpha1
+      kind: ManagedClusterAddOn
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          installNamespace: submariner-operator
+  loop: "{{ clusters }}"
+
+- name: Remove submariner addon
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-aws-creds"
+  loop: "{{ clusters }}"
+
+- name: Remove secret for AWS credentials
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    context: hub
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+          name: "{{ item.name }}-aws-creds"
+          namespace: "{{ item.name }}"
+      type: Opaque
+      data:
+          aws_access_key_id: "{{ aws_access_key_id | b64encode }}"
+          aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
+  loop: "{{ clusters }}"
+

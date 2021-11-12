@@ -1,0 +1,32 @@
+---
+- name: set default for state
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: setState is not defined
+
+- name: Warn user that command will take a long time to uninstall
+  ansible.builtin.debug:
+    msg:
+    - "Deletion of ManagedClusters cleans namespaces on the managed clusters- could take up to 25 minutes"
+
+- name: Remove imported managed clusters from hub and wait 
+  community.kubernetes.k8s:
+    state: absent
+    wait: yes
+    wait_sleep: 30 # Check every 30 seconds
+    wait_timeout: 1500 # Wait 25 mins max
+    context: hub
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ item.name }}"
+      spec:
+        hubAcceptsClient: true
+  loop: "{{ clusters }}"
+
+- name: Pause before uninstalling ACM
+  pause:
+    seconds: 180
+
+

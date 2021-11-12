@@ -1,0 +1,137 @@
+---
+- name: Warn user that command will take a long time to uninstall
+  ansible.builtin.debug:
+    msg:
+    - "Deletion of MultiClusterHub could take up to 25 minutes"
+
+- name: Delete MultiClusterHub custom resource
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    wait_sleep: 30
+    wait_timeout: 1500 # Wait 25 mins
+    namespace: hub
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        name: multiclusterhub
+        namespace: hub
+      spec:
+        imagePullSecret: ocp-pull-secret
+
+
+
+- name: Delete operator group in hub namespace
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1
+      kind: OperatorGroup
+      metadata:
+        name: hub-operator-group
+      spec:
+        targetNamespaces: 
+        - "hub"
+
+- name: Delete ACM operator subscription
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: acm-operator-subscription
+      spec:
+        sourceNamespace: openshift-marketplace
+        source: redhat-operators
+        channel: release-2.3
+        installPlanApproval: Automatic
+        name: advanced-cluster-management
+
+- name: Delete ClusterServiceVersion in hub
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    namespace: hub
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: ClusterServiceVersion
+      metadata:
+        name: advanced-cluster-management.v2.3.3
+        namespace: hub
+      spec: {}
+
+- name: Delete PVCs, SVCs, Deploys, SAs, Secrets, Pods, and CMs and wait until they're deleted
+  shell: |
+    "{{ kubectl }}" delete pvc,svc,deploy,sa,cm,pod,secret --all -n hub  --wait 
+
+- name: Delete namespace for ACM (hub)
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: hub
+      displayName: hub
+      kind: Project
+      metadata:
+          name: hub
+
+- name: Delete ACM CRD's
+  shell: |
+    "{{ kubectl }}" get crd | grep open-cluster-management.io | awk '{print $1}' | xargs "{{ kubectl }}" delete crd 
+
+
+#Check if klusterlet is there, if it is, delete it
+- name: Wait for registry object bucket claim                               
+  kubernetes.core.k8s_info:                                                 
+    api_version: operator.open-cluster-management.io/v1   
+    context: "{{ item.contexts }}"    
+    kind: Klusterlet                    
+    name: klusterlet    
+    namespace: open-cluster-management-agent
+  register: klusterlet_registry       
+  loop: "{{ clusters }}"
+
+- name: Show Klusterlet_registry
+  ansible.builtin.debug:
+    msg:
+    - "Klusterlet registry: {{ klusterlet_registry }}"
+
+- name: Remove Klusterlet CR from the managedcluster in namespace open-cluster-management-agent
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    wait_sleep: 30 # Check every 30 seconds
+    wait_timeout: 1500 # Wait 25 mins max
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: operator.open-cluster-management.io/v1
+      kind: klusterlet
+      metadata:
+        name: klusterlet
+      spec:
+        clusterName: "{{ item.name }}"
+        namespace: open-cluster-management-agent
+  loop: "{{ clusters }}"
+  when: klusterlet_registry['results'][0]['msg'] is not defined 
+
+- name: Delete ClusterRoles 
+  shell: |
+    "{{ kubectl }}" get clusterrole --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrole --context "{{ item.contexts }}" --wait
+  loop: "{{ clusters }}"
+
+- name: Delete ClusterRoleBindings 
+  shell: |
+    "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait
+  loop: "{{ clusters }}"
+
+- name: Delete Klusterlet CRDs
+  shell: |
+    "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --wait --context "{{ item.contexts }}"
+  loop: "{{ clusters }}"

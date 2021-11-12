@@ -1,0 +1,10 @@
+---
+- name: Remove submariner,remove clusterset, detach clusters, uninstall acm 
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - remove-submar-addon
+    - remove-clusterset
+    - remove-imported-clusters
+    - uninstall-acm
