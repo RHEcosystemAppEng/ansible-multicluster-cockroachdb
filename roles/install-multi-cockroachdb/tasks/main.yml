@@ -26,196 +26,199 @@
     name: ansible-git
     tasks_from: push
 
-# - name: Create cockroachdb namespaces for managed clusters
-#   kubernetes.core.k8s:
-#     wait: yes 
-#     state:  "{{ setState }}"
-#     context: "{{ item.contexts }}"
-#     definition:
-#       apiVersion: project.openshift.io/v1
-#       description: cockroachdb
-#       displayName: "{{ item.gitbranch }}"
-#       kind: Project
-#       metadata:
-#           name: "{{ item.gitbranch }}"
-#   loop: "{{ clusters }}"
+- name: Create cockroachdb namespaces for managed clusters
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+  loop: "{{ clusters }}"
 
-# - name: Create cockroachdb namespaces for hub channel
-#   kubernetes.core.k8s:
-#     wait: yes 
-#     state:  "{{ setState }}"
-#     context: hub
-#     definition:
-#       apiVersion: project.openshift.io/v1
-#       description: cockroachdb
-#       displayName: "{{ item.gitbranch }}"
-#       kind: Project
-#       metadata:
-#           name: "{{ item.gitbranch }}"
+- name: Create cockroachdb namespaces for hub channel
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
 
-# - name: Create directories needed for cockroachdb certs
-#   ansible.builtin.file:
-#     path: "{{ role_path }}/files/{{ item }}"
-#     state: directory
-#   loop: 
-#     - certs
-#     - my-safe-directory
+- name: Create directories needed for cockroachdb certs
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/{{ item }}"
+    state: directory
+  loop: 
+    - certs
+    - my-safe-directory
 
-# - name: Create directories needed for cockroachdb node cert and key
-#   ansible.builtin.file:
-#     path: "{{ role_path }}/files/certs/{{ item.gitbranch }}"
-#     state: directory
-#   loop: "{{ clusters }}"
+- name: Create directories needed for cockroachdb node cert and key
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/certs/{{ item.gitbranch }}"
+    state: directory
+  loop: "{{ clusters }}"
 
-# - name: Create the CA certificate and key pair
-#   ansible.builtin.command: "{{ cockroach }} cert create-ca --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
-#   args:
-#     creates: "{{ role_path }}/files/certs/ca.crt"
+- name: Create the CA certificate and key pair
+  ansible.builtin.command: "{{ cockroach }} cert create-ca --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/ca.crt"
 
-# - name: Create a client certificate and key pair for the root user
-#   ansible.builtin.command: "{{ cockroach }} cert create-client root --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
-#   args:
-#     creates: "{{ role_path }}/files/certs/client.root.crt"
+- name: Create a client certificate and key pair for the root user
+  ansible.builtin.command: "{{ cockroach }} cert create-client root --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/client.root.crt"
 
-# - name: Fetch created client certificate and key pair
-#   set_fact:
-#     var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
-#   loop:
-#     - {file: ca.crt, name: ca_crt}
-#     - {file: client.root.crt, name: client_root_crt}
-#     - {file: client.root.key, name: client_root_key}
+- name: Fetch created client certificate and key pair
+  set_fact:
+    var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
+  loop:
+    - {file: ca.crt, name: ca_crt}
+    - {file: client.root.crt, name: client_root_crt}
+    - {file: client.root.key, name: client_root_key}
 
-# - name: Create cockroachdb.client.root secret on managed clusters
-#   kubernetes.core.k8s:
-#     state: "{{ setState }}"
-#     context: "{{ item.contexts }}"
-#     definition:
-#       apiVersion: v1
-#       kind: Secret
-#       data:
-#         ca.crt: "{{ var_ca_crt | b64encode }}"
-#         client.root.crt: "{{ var_client_root_crt | b64encode }}"
-#         client.root.key: "{{ var_client_root_key | b64encode }}"
-#       metadata:
-#         name: cockroachdb.client.root
-#         namespace: "{{ item.gitbranch }}"
-#       type: Opaque
-#   loop: "{{ clusters }}"
+- name: Create cockroachdb.client.root secret on managed clusters
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+      metadata:
+        name: cockroachdb.client.root
+        namespace: cockroachdb
+      type: Opaque
+  loop: "{{ clusters }}"
 
-# - name: create node certs
-#   include_tasks: create_node_certs.yml
-#   loop: "{{ clusters }}"
+- name: create node certs
+  include_tasks: create_node_certs.yml
+  loop: "{{ clusters }}"
 
-# - name: Create channel for cockroachdb application in ACM
-#   kubernetes.core.k8s:
-#     wait: yes
-#     state:  "{{ setState }}"
-#     context: hub
-#     definition:
-#       apiVersion: apps.open-cluster-management.io/v1
-#       kind: Channel
-#       metadata:
-#         name: cockroachdb-app-latest
-#         namespace: cockroachdb
-#       spec:
-#         type: GitHub
-#         pathname: "{{ app_repo }}"
+- name: Create channel for cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state:  "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Channel
+      metadata:
+        name: cockroachdb-app-latest
+        namespace: cockroachdb
+      spec:
+        type: GitHub
+        pathname: "{{ app_repo }}"
 
-# - name: Create cockroachdb application in ACM
-#   kubernetes.core.k8s:
-#     wait: yes
-#     state: "{{ setState }}"
-#     context: hub
-#     definition:
-#       apiVersion: app.k8s.io/v1beta1
-#       kind: Application
-#       metadata:
-#         name: cockroachdb-app
-#         namespace: cockroachdb
-#       spec:
-#         componentKinds:
-#         - group: apps.open-cluster-management.io
-#           kind: Subscription
-#         descriptor: {}
-#         selector:
-#           matchLabels:
-#             app: cockroachdb-app
+- name: Create cockroachdb application in ACM
+  kubernetes.core.k8s:
+    wait: yes
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: app.k8s.io/v1beta1
+      kind: Application
+      metadata:
+        name: cockroachdb-app
+        namespace: cockroachdb
+      spec:
+        componentKinds:
+        - group: apps.open-cluster-management.io
+          kind: Subscription
+        descriptor: {}
+        selector:
+          matchLabels:
+            app: cockroachdb-app
 
-# - name: Create cockroachdb subscription in ACM
-#   kubernetes.core.k8s:
-#     state: "{{ setState }}"
-#     context: hub
-#     definition:
-#       apiVersion: apps.open-cluster-management.io/v1
-#       kind: Subscription
-#       metadata:
-#         name: cockroachdb-{{ item.gitbranch }}
-#         namespace: cockroachdb
-#         labels:
-#           app: cockroachdb-app
-#         annotations:
-#           apps.open-cluster-management.io/github-path: resources/cockroachdb/{{ item.gitbranch }}
-#           apps.open-cluster-management.io/git-branch: main
-#       spec:
-#         channel: cockroachdb/cockroachdb-app-latest
-#         placement:
-#           clusters:
-#             name: "{{ item.name }}"
-#   loop: "{{ clusters }}"
+- name: Create cockroachdb subscription in ACM
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: Subscription
+      metadata:
+        name: cockroachdb-{{ item.gitbranch }}
+        namespace: cockroachdb
+        labels:
+          app: cockroachdb-app
+        annotations:
+          apps.open-cluster-management.io/github-path: resources/cockroachdb/{{ item.gitbranch }}
+          apps.open-cluster-management.io/git-branch: main
+      spec:
+        channel: cockroachdb/cockroachdb-app-latest
+        placement:
+          clusters:
+            - name: "{{ item.name }}"
+  loop: "{{ clusters }}"
 
-# - name: Create cockroachdb placement rule in ACM
-#   kubernetes.core.k8s:
-#     state: "{{ setState }}"
-#     context: hub
-#     definition:
-#       apiVersion: apps.open-cluster-management.io/v1
-#       kind: PlacementRule
-#       metadata:
-#         name: cockroachdb-clusters
-#         namespace: cockroachdb
-#       spec:
-#         clusterConditions:
-#           - type: ManagedClusterConditionAvailable
-#             status: "True"
+- name: Create cockroachdb placement rule in ACM
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: hub
+    definition:
+      apiVersion: apps.open-cluster-management.io/v1
+      kind: PlacementRule
+      metadata:
+        name: cockroachdb-clusters
+        namespace: cockroachdb
+      spec:
+        clusterConditions:
+          - type: ManagedClusterConditionAvailable
+            status: "True"
+        clusterSelector:
+          matchLabels:
+            usage: cockroachdb
 
-# - name: Wait till the cockroachdb-0 pod is ready
-#   kubernetes.core.k8s_info:
-#     kind: Pod 
-#     name: cockroachdb-0
-#     context: "{{ item.contexts }}"
-#     namespace: cockroachdb
-#     wait: yes
-#     wait_sleep: 10
-#     wait_timeout: 300
-#     wait_condition:
-#       type: Initialized
-#       status: True
-#   loop: "{{ clusters }}"
-#   loop_control:
-#     index_var: my_idx
-#   when: my_idx == 0
+- name: Create the serviceExport for cockroachdb service
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: multicluster.x-k8s.io/v1alpha1
+      kind: ServiceExport
+      metadata:
+        name: "cockroachdb-{{ item.name }}"
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
 
-# - name: Create the serviceExport for cockroachdb service
-#   kubernetes.core.k8s:
-#     wait: yes 
-#     state:  "{{ setState }}"
-#     context: "{{ item.contexts }}"
-#     definition:
-#       apiVersion: multicluster.x-k8s.io/v1alpha1
-#       kind: ServiceExport
-#       metadata:
-#         name: cockroachdb
-#         namespace: "{{ item.gitbranch }}"
-#   loop: "{{ clusters }}"
+- name: Wait till the cockroachdb-0 pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait: yes
+    wait_sleep: 15
+    wait_timeout: 600
+    wait_condition:
+      type: Initialized
+      status: True
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
 
-# - name: Run cockroach init to complete the node startup process and have them join together as a cluster
-#   ansible.builtin.command: "kubectl exec --context {{ item.name }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-#   register: cockroachdb_join
-#   loop: "{{ clusters }}"
-#   loop_control:
-#     index_var: my_idx
-#   when: my_idx == 0
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  register: cockroachdb_join
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
 
-# - name: Cockroachdb init output
-#   debug: 
-#     msg: "{{ cockroachdb_join }}"
+- name: Cockroachdb init output
+  debug: 
+    msg: "{{ cockroachdb_join }}"
