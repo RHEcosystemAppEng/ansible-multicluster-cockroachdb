@@ -11,15 +11,19 @@
 
 - name: Create directories needed for cockroachdb statefuleset
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/resources/cockroachdb/{{ item.gitbranch }}"
+    path: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}"
     state: directory
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Template a file to /etc/file.conf
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yaml"
-    dest: "{{ playbook_dir }}/resources/cockroachdb/{{ item.gitbranch }}/cockroachdb-statefulset-secure.yaml"
+    dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: git push
   include_role:
@@ -63,9 +67,11 @@
 
 - name: Create directories needed for cockroachdb node cert and key
   ansible.builtin.file:
-    path: "{{ role_path }}/files/certs/{{ item.gitbranch }}"
+    path: "{{ role_path }}/files/certs/cluster{{ my_idx }}"
     state: directory
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create the CA certificate and key pair
   ansible.builtin.command: "{{ cockroach }} cert create-ca --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
@@ -105,6 +111,8 @@
 - name: create node certs
   include_tasks: create_node_certs.yml
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create channel for cockroachdb application in ACM
   kubernetes.core.k8s:
@@ -149,12 +157,12 @@
       apiVersion: apps.open-cluster-management.io/v1
       kind: Subscription
       metadata:
-        name: cockroachdb-{{ item.gitbranch }}
+        name: cockroachdb-cluster{{ my_idx }}
         namespace: cockroachdb
         labels:
           app: cockroachdb-app
         annotations:
-          apps.open-cluster-management.io/github-path: resources/cockroachdb/{{ item.gitbranch }}
+          apps.open-cluster-management.io/github-path: resources/cockroachdb/cluster{{ my_idx }}
           apps.open-cluster-management.io/git-branch: main
       spec:
         channel: cockroachdb/cockroachdb-app-latest
@@ -162,6 +170,8 @@
           clusters:
             - name: "{{ item.name }}"
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create cockroachdb placement rule in ACM
   kubernetes.core.k8s:
@@ -194,31 +204,3 @@
         namespace: cockroachdb
   loop: "{{ clusters }}"
 
-- name: Wait till the cockroachdb-0 pod is ready
-  kubernetes.core.k8s_info:
-    kind: Pod 
-    name: cockroachdb-0
-    context: "{{ item.contexts }}"
-    namespace: cockroachdb
-    wait: yes
-    wait_sleep: 15
-    wait_timeout: 600
-    wait_condition:
-      type: Initialized
-      status: True
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
-
-- name: Run cockroach init to complete the node startup process and have them join together as a cluster
-  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-  register: cockroachdb_join
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
-
-- name: Cockroachdb init output
-  debug: 
-    msg: "{{ cockroachdb_join }}"

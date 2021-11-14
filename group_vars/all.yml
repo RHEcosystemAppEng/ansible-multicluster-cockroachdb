@@ -1,8 +1,13 @@
 # cluster name, cluster count, kubeconfig context
 # Example 
+# clusters:
+#   - {name: cluster1, count: "1", contexts: cluster1}
+#   - {name: cluster2, count: "2", contexts: cluster2}
+
 clusters:
-  - {name: cluster1, count: "1", contexts: cluster1}
-  - {name: cluster2, count: "2", contexts: cluster2}
+    - {name: us-east-2, contexts: us-east-2}
+    - {name: us-west-2, contexts: us-west-2}
+
 
 # Hub context - set to the name of cluster for ACM and hub install
 hub_context: hub
@@ -12,7 +17,7 @@ hub_context: hub
 ocp_pull_secret: 
 
 # ManagedClusterSet Name
-clusterset_name: 
+clusterset_name: cockroachdb-clusterset
 
 # AWS credentials
 aws_access_key_id: 
