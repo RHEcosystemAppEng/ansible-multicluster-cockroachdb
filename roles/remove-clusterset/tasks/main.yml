@@ -37,3 +37,7 @@
   ansible.builtin.debug:
     msg:
     - "Clusterset has been deleted"
+
+- name: Pause and wait to delete imported clusters
+  pause:
+    seconds: 120
