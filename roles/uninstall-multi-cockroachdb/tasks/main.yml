@@ -9,6 +9,11 @@
     kubectl: /usr/local/bin/kubectl
   when: kubectl is not defined
 
+- name: Delete directories needed for cockroachdb statefuleset
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/resources"
+    state: absent
+
 - name: Delete the serviceExport for cockroachdb service
   kubernetes.core.k8s:
     wait: yes 

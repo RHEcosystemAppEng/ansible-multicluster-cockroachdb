@@ -131,7 +131,7 @@
   when: setState == "present"
 
 - name: Import managed clusters
-  kubernetes.core.k8s:
+  community.kubernetes.k8s:
     wait: yes
     state: "{{ setState }}"
     context: "{{ item.contexts }}"
