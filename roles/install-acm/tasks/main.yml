@@ -36,6 +36,7 @@
 #         .dockerconfigjson: "{{ ocp_pull_secret | b64encode }}"
 #       type: kubernetes.io/dockerconfigjson
 
+
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:
     wait: yes

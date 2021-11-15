@@ -39,7 +39,7 @@
   loop: "{{ clusters }}"
 
 - name: Add clusters as managed clusters
-  kubernetes.core.k8s:
+  community.kubernetes.k8s:
     wait: yes
     state: "{{ setState }}"
     context: "{{ hub_context }}"

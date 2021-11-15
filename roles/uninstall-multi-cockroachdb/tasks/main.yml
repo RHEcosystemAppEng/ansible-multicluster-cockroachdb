@@ -163,7 +163,8 @@
       type: Opaque
   loop: "{{ clusters }}"
 
-- name: Delete Secrets manually (delete this when top is fixed)
+- name: Delete Secrets manually incase last task failed
+  ignore_errors: yes
   shell: |
     "{{ kubectl }}" delete secret -n cockroachdb --context "{{ item.contexts }}" --all --wait
   loop: "{{ clusters }}"

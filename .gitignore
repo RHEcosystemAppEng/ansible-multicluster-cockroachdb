@@ -12,3 +12,5 @@
 *.key
 
 .ssh
+
+pull-secret.json

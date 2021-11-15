@@ -109,6 +109,7 @@
     - "Klusterlet registry: {{ klusterlet_registry }}"
 
 - name: Remove Klusterlet CR from the managedcluster in namespace open-cluster-management-agent
+  ignore_errors: yes
   community.kubernetes.k8s:
     state: absent
     wait: yes
@@ -136,7 +137,8 @@
     "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait
   loop: "{{ clusters }}"
 
-# - name: Delete Klusterlet CRDs
-#   shell: |
-#     "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --context "{{ item.contexts }}"
-#   loop: "{{ clusters }}"
+- name: Delete Klusterlet CRDs
+  ignore_errors: yes
+  shell: |
+    "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --context "{{ item.contexts }}"
+  loop: "{{ clusters }}"
