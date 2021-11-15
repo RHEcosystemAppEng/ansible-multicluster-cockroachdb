@@ -13,8 +13,9 @@ clusters:
 hub_context: hub
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
-# add .dockerconfigjson as value
-ocp_pull_secret: 
+# add path where pull secret is located 
+ocp_pull_secret_path: 
+
 
 # ManagedClusterSet Name
 clusterset_name: cockroachdb-clusterset

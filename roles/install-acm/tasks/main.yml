@@ -4,6 +4,10 @@
     setState: present
   when: setState is not defined
 
+- name: Create pull secret variable
+  set_fact: 
+    ocp_pull_secret: "{{ lookup('file', '{{ ocp_pull_secret_path }}') }}"
+
 - name: Create namespace for ACM
   kubernetes.core.k8s:
     wait: yes
@@ -29,7 +33,7 @@
       metadata:
         name: ocp-pull-secret
       data:
-        .dockerconfigjson: "{{ ocp_pull_secret }}"
+        .dockerconfigjson: "{{ ocp_pull_secret | b64encode }}"
       type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
