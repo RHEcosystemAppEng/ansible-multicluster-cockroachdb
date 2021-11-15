@@ -3,7 +3,15 @@
 - include_tasks: unpack.yml
 
 - name: git add all new files
-  ansible.builtin.shell: "git add -- {{ playbook_dir }}/resources/cockroachdb/"
+  args:
+    chdir: "{{ playbook_dir }}"
+  # ansible.builtin.shell: "ls"
+  ansible.builtin.shell: "git add -- resources/cockroachdb/"
+  register: commits_list
+
+- name: Get files
+  debug:
+    var: commits_list
 
 - name: git status
   ansible.builtin.shell: git status
