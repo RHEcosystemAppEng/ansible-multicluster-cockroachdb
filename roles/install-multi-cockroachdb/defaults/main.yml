@@ -1,3 +1,2 @@
-# Switch to import or delete clusters
-# values present or absent
-# setState: absent
+# Empy join command list for use later when building out the join command
+join_command: []

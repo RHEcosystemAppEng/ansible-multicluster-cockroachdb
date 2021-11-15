@@ -5,7 +5,7 @@
     state: directory
 
 - name: create temp file
-  ansible.builtin.template:
+  ansible.builtin.tempfile:
     path: "{{ playbook_dir }}/.ssh"
   register: git_temp_file
 

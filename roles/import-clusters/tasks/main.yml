@@ -74,24 +74,30 @@
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
-    importSecret_{{ item.count }}: "{{ lookup('kubernetes.core.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
-    register: importSecret_{{ item.count }}
+    importSecret_{{ my_idx }}: "{{ lookup('kubernetes.core.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
+    register: importSecret_{{ my_idx }}
   when:  setState == "present"
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create klusterlet CRD yaml in files directory
-  ansible.builtin.shell: echo "{{ vars['importSecret_' + item.count]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
   when:  setState == "present"
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create import yaml in files directory
-  ansible.builtin.shell: echo "{{ vars['importSecret_' + item.count]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-import.yaml"
   when:  setState == "present"
   loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
 
 - name: Create klusterlet CRD on managed clusters
   kubernetes.core.k8s:
