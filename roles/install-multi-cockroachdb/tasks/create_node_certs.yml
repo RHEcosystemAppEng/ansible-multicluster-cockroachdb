@@ -24,7 +24,7 @@
 
 - name: Fetch created node client key
   set_fact:
-    key_cluster{{ my_idx }}: "{{ lookup('file', '{{ role_path }}/files/certs/node.key') }}"
+    key_{{ my_idx }}: "{{ lookup('file', '{{ role_path }}/files/certs/node.key') }}"
 
 - name: Create cockroachdb.node secret on managed item
   kubernetes.core.k8s:
@@ -37,8 +37,8 @@
         ca.crt: "{{ var_ca_crt | b64encode }}"
         client.root.crt: "{{ var_client_root_crt | b64encode }}"
         client.root.key: "{{ var_client_root_key | b64encode }}"
-        node.crt: "{{ vars['cert_' + my_idx] | b64encode }}"
-        node.key: "{{ vars['key_' + my_idx] | b64encode }}"
+        node.crt: "{{ vars['cert_' + my_idx|string] | b64encode }}"
+        node.key: "{{ vars['key_' + my_idx|string] | b64encode }}"
       metadata:
         name: cockroachdb.node
         namespace: cockroachdb

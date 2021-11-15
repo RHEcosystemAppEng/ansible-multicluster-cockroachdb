@@ -250,7 +250,7 @@ spec:
             --certs-dir /cockroach/cockroach-certs
             --advertise-host $(hostname -f)
             --http-addr 0.0.0.0
-            --join cockroachdb-0.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-0.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local
+            --join {{ format_join_command }}
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB

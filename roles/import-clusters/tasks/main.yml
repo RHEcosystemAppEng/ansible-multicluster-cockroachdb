@@ -82,7 +82,7 @@
     index_var: my_idx
 
 - name: Create klusterlet CRD yaml in files directory
-  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
   when:  setState == "present"
@@ -91,7 +91,7 @@
     index_var: my_idx
 
 - name: Create import yaml in files directory
-  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
+  ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-import.yaml"
   when:  setState == "present"

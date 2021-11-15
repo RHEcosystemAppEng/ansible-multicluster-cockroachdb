@@ -1,4 +1,5 @@
 ---
+
 - name: set default for state
   set_fact: 
     setState: present
@@ -8,6 +9,28 @@
   set_fact: 
     cockroach: /usr/local/bin/cockroach
   when: cockroach is not defined
+
+- name: Create variables for join command for each cluster
+  set_fact: 
+    joinCluster_{{ my_idx }}: "cockroachdb-0.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+
+- name: Creat list of join command
+  ansible.builtin.set_fact:
+    join_command: "{{ join_command | default('') + [vars['joinCluster_' + my_idx|string]] }}"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+
+- name: Format join command
+  ansible.builtin.set_fact:
+    format_join_command: "{{ join_command | join (',') }}"
+
+- name: Dispalying formatted join command 
+  ansible.builtin.debug:
+    msg: "{{ format_join_command }}"
 
 - name: Create directories needed for cockroachdb statefuleset
   ansible.builtin.file:
