@@ -45,3 +45,6 @@
           aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
   loop: "{{ clusters }}"
 
+- name: Pause and wait to delete clusterset
+  pause:
+    seconds: 120
