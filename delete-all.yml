@@ -4,6 +4,7 @@
   gather_facts: false
 
   roles:
+    - uninstall-multi-cockroachdb
     - remove-submar-addon
     - remove-clusterset
     - remove-imported-clusters

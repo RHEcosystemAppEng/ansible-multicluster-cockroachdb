@@ -20,6 +20,24 @@
             cluster.open-cluster-management.io/managedCluster: "{{ item.name }}"
   loop: "{{ clusters }}"
 
+- name: Create auto-import-secret in each <cluster-name> namespace
+  kubernetes.core.k8s:
+    wait: yes
+    context: "{{ hub_context }}"
+    namespace: "{{ item.name }}"
+    state: "{{ setState }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: auto-import-secret
+      stringData:
+        autoImportRetry: "10"
+        token: "{{ item.token }}"
+        server: "{{ item.server }}"
+      type: Opaque
+  loop: "{{ clusters }}"
+
 - name: Add clusters as managed clusters
   kubernetes.core.k8s:
     wait: yes

@@ -4,6 +4,11 @@
     cockroach: /usr/local/bin/cockroach
   when: cockroach is not defined
 
+- name: set default for kubectl
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: kubectl is not defined
+
 - name: Delete the serviceExport for cockroachdb service
   kubernetes.core.k8s:
     wait: yes 
@@ -92,7 +97,17 @@
           matchLabels:
             app: cockroachdb-app
 
+- name: Fetch created client certificate and key pair
+  ignore_errors: yes
+  set_fact:
+    var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
+  loop:
+    - {file: ca.crt, name: ca_crt}
+    - {file: client.root.crt, name: client_root_crt}
+    - {file: client.root.key, name: client_root_key}
+
 - name: Delete cockroachdb.node secret on managed clusters
+  ignore_errors: yes
   kubernetes.core.k8s:
     state: absent
     context: "{{ item.contexts }}"
@@ -112,6 +127,7 @@
   loop: "{{ clusters }}"
 
 - name: Delete cockroachdb.client.root secret on managed clusters
+  ignore_errors: yes
   kubernetes.core.k8s:
     state: absent
     context: "{{ item.contexts }}"
@@ -127,6 +143,12 @@
         namespace: cockroachdb
       type: Opaque
   loop: "{{ clusters }}"
+
+- name: Delete Secrets manually (delete this when top is fixed)
+  shell: |
+    "{{ kubectl }}" delete secret -n cockroachdb --context "{{ item.contexts }}" --all --wait
+  loop: "{{ clusters }}"
+
 
 - name: Delete cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:

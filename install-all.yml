@@ -8,6 +8,7 @@
     - import-clusters
     - create-clusterset
     - install-submar-addon
+    - install-multi-cockroachdb
 
 # start_time=`date +%s`
 # ansible-playbook install-all.yml

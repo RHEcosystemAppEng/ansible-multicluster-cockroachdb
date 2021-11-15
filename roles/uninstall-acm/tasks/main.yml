@@ -1,4 +1,9 @@
 ---
+- name: set default for kubectl
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: kubectl is not defined
+
 - name: Warn user that command will take a long time to uninstall
   ansible.builtin.debug:
     msg:
@@ -131,7 +136,7 @@
     "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait
   loop: "{{ clusters }}"
 
-- name: Delete Klusterlet CRDs
-  shell: |
-    "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --wait --context "{{ item.contexts }}"
-  loop: "{{ clusters }}"
+# - name: Delete Klusterlet CRDs
+#   shell: |
+#     "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --context "{{ item.contexts }}"
+#   loop: "{{ clusters }}"

@@ -4,7 +4,7 @@
     kubectl: /usr/local/bin/kubectl
   when: setState is not defined
 
-- name: Warn user that command will take a long time to uninstall
+- name: Namespaces and objects are being deleted from Managed Clusters
   ansible.builtin.debug:
     msg:
     - "Deletion of ManagedClusters cleans namespaces on the managed clusters- could take up to 25 minutes"
@@ -23,6 +23,18 @@
         name: "{{ item.name }}"
       spec:
         hubAcceptsClient: true
+  loop: "{{ clusters }}"
+
+- name: Remove klusterlet CRD yaml in files directory
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/roles/import-clusters/files/{{ item.name }}-klusterlet-crd.yaml"
+    state: absent
+  loop: "{{ clusters }}"
+
+- name: Remove import yaml in files directory
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/roles/import-clusters/files/{{ item.name }}-import.yaml"
+    state: absent
   loop: "{{ clusters }}"
 
 - name: Pause before uninstalling ACM
