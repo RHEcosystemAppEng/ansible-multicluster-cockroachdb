@@ -6,7 +6,7 @@
 
 - name: Create pull secret variable
   set_fact: 
-    ocp_pull_secret: "{{ lookup('file', '{{ ocp_pull_secret_path }}') }}"
+    ocp_pull_secret: "{{ lookup('file', '{{ ocp_pull_secret_path }}') | from_json  }}"
 
 - name: Create namespace for ACM
   kubernetes.core.k8s:
@@ -33,7 +33,7 @@
       metadata:
         name: ocp-pull-secret
       data:
-        .dockerconfigjson: "{{ ocp_pull_secret | b64encode }}"
+        .dockerconfigjson: "{{ ocp_pull_secret | to_json | b64encode }}"
       type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace

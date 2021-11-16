@@ -16,13 +16,20 @@ hub_context: hub
 # add path where pull secret is located 
 ocp_pull_secret_path: 
 
-
 # ManagedClusterSet Name
 clusterset_name: cockroachdb-clusterset
+
+kubeconfig_path: 
+
+# AWS credentials
+aws_creds_path: 
 
 # AWS credentials
 aws_access_key_id: 
 aws_secret_access_key: 
+
+# kubectl path
+kubectl: 
 
 # Set cockroachdb cli path if needed default /usr/local/bin/cockroach
 # cockroach:

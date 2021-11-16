@@ -4,6 +4,15 @@
     setState: present
   when: setState is not defined
 
+- name: set default for state
+  set_fact: 
+    kubeconfig_file: "{{ lookup('file', '{{ kubeconfig_path }}') }}"
+
+- name: Dispalying formatted join command 
+  ansible.builtin.debug:
+    msg: "{{ kubeconfig_file }}"
+
+
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
     wait: yes 
@@ -36,6 +45,22 @@
         hubAcceptsClient: true
   loop: "{{ clusters }}"
 
+- name: Create auto-import-secret in each <cluster-name> namespace
+  kubernetes.core.k8s:
+    wait: yes
+    context: "{{ hub_context }}"
+    namespace: "{{ item.name }}"
+    state: "{{ setState }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: auto-import-secret
+      stringData:
+        autoImportRetry: "10"
+        kubeconfig: "{{ kubeconfig_file }}"
+      type: Opaque
+  loop: "{{ clusters }}"
 
 - name: Create the klusterlet addon
   kubernetes.core.k8s:
