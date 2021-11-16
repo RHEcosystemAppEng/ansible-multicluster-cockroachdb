@@ -39,7 +39,7 @@
   loop: "{{ clusters }}"
 
 - name: Add clusters as managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     wait: yes
     state: "{{ setState }}"
     context: "{{ hub_context }}"
@@ -87,7 +87,7 @@
 
 - name: Pause for import and klusterlet secrets to be created
   pause:
-    seconds: 10
+    seconds: 90
   when: setState == "present"
 
 - name: Fetch import and klusterlet secrets for managed clusters
@@ -131,7 +131,7 @@
   when: setState == "present"
 
 - name: Import managed clusters
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     wait: yes
     state: "{{ setState }}"
     context: "{{ item.contexts }}"

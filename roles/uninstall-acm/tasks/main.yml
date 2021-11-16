@@ -110,7 +110,7 @@
 
 - name: Remove Klusterlet CR from the managedcluster in namespace open-cluster-management-agent
   ignore_errors: yes
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: absent
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
