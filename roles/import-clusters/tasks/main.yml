@@ -54,23 +54,6 @@
         hubAcceptsClient: true
   loop: "{{ clusters }}"
 
-- name: Create auto-import-secret in each <cluster-name> namespace
-  kubernetes.core.k8s:
-    wait: yes
-    context: "{{ hub_context }}"
-    namespace: "{{ item.name }}"
-    state: "{{ setState }}"
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: auto-import-secret
-      stringData:
-        autoImportRetry: "10"
-        kubeconfig: "{{ kubeconfig_file }}"
-      type: Opaque
-  loop: "{{ clusters }}"
-
 - name: Create the klusterlet addon
   kubernetes.core.k8s:
     wait: yes
@@ -98,7 +81,7 @@
           enabled: true
         searchCollector:
           enabled: true
-        version: 2.2.0
+        version: 2.3.0
   loop: "{{ clusters }}"
 
 - name: Pause for import and klusterlet secrets to be created

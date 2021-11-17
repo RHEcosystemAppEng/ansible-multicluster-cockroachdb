@@ -14,7 +14,7 @@
   kubernetes.core.k8s_info:
     kind: ManagedClusterAddOn 
     name: submariner
-    namespace: hub
+    namespace: "{{ item.name }}"
     wait: yes
     context: "{{ hub_context }}"
     wait_sleep: 15
@@ -22,6 +22,7 @@
     wait_condition:
       type: RegistrationApplied
       status: True
+  loop: "{{ clusters }}"
 
 - name: Create variables for join command for each cluster
   set_fact: 
