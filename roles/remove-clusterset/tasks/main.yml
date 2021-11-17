@@ -5,7 +5,7 @@
   when: clusterset_name is not defined
 
 - name: Remove managed cluster set 
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     state: absent
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
@@ -37,3 +37,7 @@
   ansible.builtin.debug:
     msg:
     - "Clusterset has been deleted"
+
+- name: Pause and wait to delete imported clusters
+  pause:
+    seconds: 10

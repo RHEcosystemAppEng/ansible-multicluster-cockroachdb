@@ -1,4 +1,9 @@
 ---
+- name: set default for kubectl
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: kubectl is not defined
+
 - name: Warn user that command will take a long time to uninstall
   ansible.builtin.debug:
     msg:
@@ -82,11 +87,6 @@
       metadata:
           name: hub
 
-- name: Delete ACM CRD's
-  shell: |
-    "{{ kubectl }}" get crd | grep open-cluster-management.io | awk '{print $1}' | xargs "{{ kubectl }}" delete crd 
-
-
 #Check if klusterlet is there, if it is, delete it
 - name: Wait for registry object bucket claim                               
   kubernetes.core.k8s_info:                                                 
@@ -103,7 +103,28 @@
     msg:
     - "Klusterlet registry: {{ klusterlet_registry }}"
 
-- name: Remove Klusterlet CR from the managedcluster in namespace open-cluster-management-agent
+# - name: Patch Klusterlet CR from the managedcluster if still present
+#   ignore_errors: yes
+#   kubernetes.core.k8s:
+#     state: absent
+#     wait: yes
+#     wait_sleep: 30 # Check every 30 seconds
+#     wait_timeout: 1500 # Wait 25 mins max
+#     context: "{{ item.contexts }}"
+#     definition:
+#       apiVersion: operator.open-cluster-management.io/v1
+#       kind: klusterlet
+#       metadata:
+#         name: klusterlet
+#         finalizers: null
+#       spec:
+#         clusterName: "{{ item.name }}"
+#         namespace: open-cluster-management-agent
+#   loop: "{{ clusters }}"
+#   when: klusterlet_registry['results'][0]['msg'] is not defined 
+
+- name: Remove Klusterlet CR from the managedcluster if still present
+  ignore_errors: yes
   kubernetes.core.k8s:
     state: absent
     wait: yes
@@ -128,10 +149,16 @@
 
 - name: Delete ClusterRoleBindings 
   shell: |
-    "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait
+    "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait 
   loop: "{{ clusters }}"
 
 - name: Delete Klusterlet CRDs
+  ignore_errors: yes
   shell: |
-    "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --wait --context "{{ item.contexts }}"
+    "{{ kubectl }}" get crd --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete crd --wait  --context "{{ item.contexts }}"
   loop: "{{ clusters }}"
+
+- name: Delete ACM CRD's
+  shell: |
+    "{{ kubectl }}" get crd | grep open-cluster-management.io | awk '{print $1}' | xargs "{{ kubectl }}" delete crd 
+

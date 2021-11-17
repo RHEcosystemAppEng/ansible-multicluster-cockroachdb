@@ -1,9 +1,8 @@
 ---
-- name: Remove Submariner from the managed clusters
+- name: Remove Submariner ManagedClusterAddon from the managed clusters
   kubernetes.core.k8s:
     state: absent
     wait: yes
-    state: absent
     definition:
       apiVersion: addon.open-cluster-management.io/v1alpha1
       kind: ManagedClusterAddOn
@@ -46,3 +45,6 @@
           aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
   loop: "{{ clusters }}"
 
+- name: Pause and wait to delete clusterset
+  pause:
+    seconds: 120
