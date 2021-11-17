@@ -8,10 +8,19 @@
   set_fact: 
     kubeconfig_file: "{{ lookup('file', '{{ kubeconfig_path }}') }}"
 
-- name: Dispalying formatted join command 
-  ansible.builtin.debug:
-    msg: "{{ kubeconfig_file }}"
-
+- name: Wait till MultiClusterHub is created
+  kubernetes.core.k8s_info:
+    kind: MultiClusterHub 
+    name: multiclusterhub
+    namespace: hub
+    wait: yes
+    context: "{{ hub_context }}"
+    wait_sleep: 15
+    wait_timeout: 400
+    wait_condition:
+      type: Complete
+      status: True
+  register: hub_state
 
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
