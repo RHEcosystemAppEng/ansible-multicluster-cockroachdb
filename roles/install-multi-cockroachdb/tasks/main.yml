@@ -10,6 +10,19 @@
     cockroach: /usr/local/bin/cockroach
   when: cockroach is not defined
 
+- name: Wait till submariner add on install completes 
+  kubernetes.core.k8s_info:
+    kind: ManagedClusterAddOn 
+    name: submariner
+    namespace: hub
+    wait: yes
+    context: "{{ hub_context }}"
+    wait_sleep: 15
+    wait_timeout: 400
+    wait_condition:
+      type: RegistrationApplied
+      status: True
+
 - name: Create variables for join command for each cluster
   set_fact: 
     joinCluster_{{ my_idx }}: "cockroachdb-0.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local"
