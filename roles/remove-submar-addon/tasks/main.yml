@@ -1,5 +1,5 @@
 ---
-- name: Remove Submariner from the managed clusters
+- name: Remove Submariner ManagedClusterAddon from the managed clusters
   kubernetes.core.k8s:
     state: absent
     wait: yes

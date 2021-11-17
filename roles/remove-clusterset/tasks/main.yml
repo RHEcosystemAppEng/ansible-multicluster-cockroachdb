@@ -40,4 +40,4 @@
 
 - name: Pause and wait to delete imported clusters
   pause:
-    seconds: 120
+    seconds: 10

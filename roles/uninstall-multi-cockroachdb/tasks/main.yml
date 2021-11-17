@@ -21,12 +21,6 @@
     path: "{{ playbook_dir }}/.ssh"
     state: absent
 
-- name: Delete directories needed for cockroachdb certs
-  ignore_errors: yes
-  ansible.builtin.file:
-    path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files"
-    state: absent
-
 
 - name: Delete the serviceExport for cockroachdb service
   kubernetes.core.k8s:
@@ -63,7 +57,7 @@
             kind: PlacementRule
             name: cockroachdb-clusters
         
-- name: Delete cockroachdb application in ACM
+- name: Delete cockroachdb Application in ACM
   kubernetes.core.k8s:
     wait: yes
     state: absent
@@ -83,7 +77,7 @@
           matchLabels:
             app: cockroachdb-app
 
-- name: Delete channel for cockroachdb application in ACM
+- name: Delete Channel for cockroachdb application in ACM
   kubernetes.core.k8s:
     wait: yes
     state: absent
@@ -98,7 +92,7 @@
         type: GitHub
         pathname: "{{ app_repo }}"
 
-- name: Delete cockroachdb placement rule in ACM
+- name: Delete cockroachdb PlacementRule in ACM
   kubernetes.core.k8s:
     state: absent
     context: hub
@@ -116,10 +110,18 @@
           matchLabels:
             app: cockroachdb-app
 
+- name: Fetch created node client certificate
+  set_fact:
+    node_cert: "{{ lookup('file', '{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/cluster0/node.crt') }}"
+
+- name: Fetch created node client key
+  set_fact:
+    node_key: "{{ lookup('file', '{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/cluster0/node.key') }}"
+
 - name: Fetch created client certificate and key pair
   ignore_errors: yes
   set_fact:
-    var_{{ item.name }}: "{{ lookup('file', '{{ role_path }}/files/certs/{{ item.file }}') }}"
+    var_{{ item.name }}: "{{ lookup('file', '{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/{{ item.file }}') }}"
   loop:
     - {file: ca.crt, name: ca_crt}
     - {file: client.root.crt, name: client_root_crt}
@@ -137,8 +139,8 @@
         ca.crt: "{{ var_ca_crt | b64encode }}"
         client.root.crt: "{{ var_client_root_crt | b64encode }}"
         client.root.key: "{{ var_client_root_key | b64encode }}"
-        node.crt: "{{ var_node_crt | b64encode }}"
-        node.key: "{{ var_node_key | b64encode }}"
+        node.crt: "{{ vars['node_cert'] | b64encode }}"
+        node.key: "{{ vars['node_key'] | b64encode }}"
       metadata:
         name: cockroachdb.node
         namespace: cockroachdb
@@ -163,12 +165,13 @@
       type: Opaque
   loop: "{{ clusters }}"
 
+# This is a precaution, if the certs were not created, but secrets still exist from a past install
+# deleting the namespace could be hazardous 
 - name: Delete Secrets manually incase last task failed
   ignore_errors: yes
   shell: |
     "{{ kubectl }}" delete secret -n cockroachdb --context "{{ item.contexts }}" --all --wait
   loop: "{{ clusters }}"
-
 
 - name: Delete cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
@@ -196,3 +199,13 @@
       kind: Project
       metadata:
           name: cockroachdb
+
+- name: Remove installation files from file directory
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/"
+    state: absent
+
+- name: Remove installation files from file directory
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/my-safe-directory/"
+    state: absent

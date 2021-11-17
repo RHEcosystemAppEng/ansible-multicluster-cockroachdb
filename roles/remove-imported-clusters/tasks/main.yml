@@ -39,6 +39,6 @@
 
 - name: Pause before uninstalling ACM
   pause:
-    seconds: 180
+    seconds: 10
 
 
