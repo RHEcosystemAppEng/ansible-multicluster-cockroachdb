@@ -104,7 +104,7 @@
 
 - name: Create directories needed for cockroachdb node cert and key
   ansible.builtin.file:
-    path: "{{ role_path }}/files/certs/cluster{{ my_idx }}"
+    path: "{{ role_path }}/files/certs/cluster{{ my_idx|string }}"
     state: directory
   loop: "{{ clusters }}"
   loop_control:
@@ -228,19 +228,6 @@
           matchLabels:
             usage: cockroachdb
 
-- name: Create the serviceExport for cockroachdb service
-  kubernetes.core.k8s:
-    wait: yes 
-    state:  "{{ setState }}"
-    context: "{{ item.contexts }}"
-    definition:
-      apiVersion: multicluster.x-k8s.io/v1alpha1
-      kind: ServiceExport
-      metadata:
-        name: "cockroachdb-{{ item.name }}"
-        namespace: cockroachdb
-  loop: "{{ clusters }}"
-
 - name: Wait till the cockroachdb-0 pod is ready
   kubernetes.core.k8s_info:
     kind: Pod 
@@ -257,6 +244,19 @@
   loop_control:
     index_var: my_idx
   when: my_idx == 0
+
+- name: Create the serviceExport for cockroachdb service
+  kubernetes.core.k8s:
+    wait: yes 
+    state:  "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: multicluster.x-k8s.io/v1alpha1
+      kind: ServiceExport
+      metadata:
+        name: "cockroachdb-{{ item.name }}"
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
