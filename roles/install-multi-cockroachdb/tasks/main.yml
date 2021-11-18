@@ -199,7 +199,7 @@
         labels:
           app: cockroachdb-app
         annotations:
-          apps.open-cluster-management.io/github-path: resources/cockroachdb/cluster{{ my_idx }}
+          apps.open-cluster-management.io/github-path: resources/cockroachdb/cluster{{ my_idx|string }}
           apps.open-cluster-management.io/git-branch: main
       spec:
         channel: cockroachdb/cockroachdb-app-latest
@@ -241,3 +241,27 @@
         namespace: cockroachdb
   loop: "{{ clusters }}"
 
+- name: Wait till the cockroachdb-0 pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait: yes
+    wait_sleep: 15
+    wait_timeout: 600
+    wait_condition:
+      type: Initialized
+      status: True
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
+
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  register: cockroachdb_join
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
