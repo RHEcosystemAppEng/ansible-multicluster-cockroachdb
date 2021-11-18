@@ -87,8 +87,8 @@
       metadata:
           name: hub
 
-#Check if klusterlet is there, if it is, delete it
-- name: Wait for registry object bucket claim                               
+#ACM intermittently leaves klusterlets, make sure it was deleted when the managed cluster was deleted
+- name: Check if klusterlet is still installed                            
   kubernetes.core.k8s_info:                                                 
     api_version: operator.open-cluster-management.io/v1   
     context: "{{ item.contexts }}"    

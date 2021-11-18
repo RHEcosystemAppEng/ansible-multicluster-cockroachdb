@@ -95,7 +95,7 @@ metadata:
   # set such that they can resolve each other's IP addresses. It does not
   # create a load-balanced ClusterIP and should not be used directly by clients
   # in most circumstances.
-  name: cockroachdb-us-west-2
+  name: cockroachdb-ansible-managed-2
   labels:
     app: cockroachdb
   annotations:
@@ -142,7 +142,7 @@ metadata:
   name: cockroachdb
   namespace: cockroachdb
 spec:
-  serviceName: cockroachdb-us-west-2
+  serviceName: cockroachdb-ansible-managed-2
   replicas: 3
   selector:
     matchLabels:
@@ -250,7 +250,7 @@ spec:
             --certs-dir /cockroach/cockroach-certs
             --advertise-host $(hostname -f)
             --http-addr 0.0.0.0
-            --join cockroachdb-0.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-us-east-2.cockroachdb.svc.clusterset.local,cockroachdb-0.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-us-west-2.cockroachdb.svc.clusterset.local,cockroachdb-0.cockroachdb-ap-southeast-1.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-ap-southeast-1.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-ap-southeast-1.cockroachdb.svc.clusterset.local
+            --join cockroachdb-0.cockroachdb-ansible-managed-1.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-ansible-managed-1.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-ansible-managed-1.cockroachdb.svc.clusterset.local,cockroachdb-0.cockroachdb-ansible-managed-2.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-ansible-managed-2.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-ansible-managed-2.cockroachdb.svc.clusterset.local
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
