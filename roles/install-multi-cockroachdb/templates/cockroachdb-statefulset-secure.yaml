@@ -95,7 +95,7 @@ metadata:
   # set such that they can resolve each other's IP addresses. It does not
   # create a load-balanced ClusterIP and should not be used directly by clients
   # in most circumstances.
-  name: cockroachdb-{{ item.name }}
+  name: cockroachdb
   labels:
     app: cockroachdb
   annotations:
@@ -142,7 +142,7 @@ metadata:
   name: cockroachdb
   namespace: cockroachdb
 spec:
-  serviceName: cockroachdb-{{ item.name }}
+  serviceName: cockroachdb
   replicas: 3
   selector:
     matchLabels:
@@ -191,10 +191,10 @@ spec:
         resources:
           requests:
             cpu: "2"
-            memory: "8Gi"
+            memory: "5Gi"
           limits:
             cpu: "2"
-            memory: "8Gi" 
+            memory: "5Gi" 
         ports:
         - containerPort: 26257
           name: grpc
@@ -248,7 +248,7 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname -f)
+            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
             --join {{ format_join_command }}
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)

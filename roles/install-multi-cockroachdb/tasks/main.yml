@@ -10,23 +10,23 @@
     cockroach: /usr/local/bin/cockroach
   when: cockroach is not defined
 
-- name: Wait till submariner add on install completes 
-  kubernetes.core.k8s_info:
-    kind: ManagedClusterAddOn 
-    name: submariner
-    namespace: "{{ item.name }}"
-    wait: yes
-    context: "{{ hub_context }}"
-    wait_sleep: 15
-    wait_timeout: 400
-    wait_condition:
-      type: RegistrationApplied
-      status: True
-  loop: "{{ clusters }}"
+# - name: Wait till submariner add on install completes 
+#   kubernetes.core.k8s_info:
+#     kind: ManagedClusterAddOn 
+#     name: submariner
+#     namespace: "{{ item.name }}"
+#     wait: yes
+#     context: "{{ hub_context }}"
+#     wait_sleep: 15
+#     wait_timeout: 400
+#     wait_condition:
+#       type: RegistrationApplied
+#       status: True
+#   loop: "{{ clusters }}"
 
 - name: Create variables for join command for each cluster
   set_fact: 
-    joinCluster_{{ my_idx }}: "cockroachdb-0.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-1.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local,cockroachdb-2.cockroachdb-{{ item.name }}.cockroachdb.svc.clusterset.local"
+    joinCluster_{{ my_idx }}: "cockroachdb-0.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
@@ -102,14 +102,6 @@
     - certs
     - my-safe-directory
 
-- name: Create directories needed for cockroachdb node cert and key
-  ansible.builtin.file:
-    path: "{{ role_path }}/files/certs/cluster{{ my_idx|string }}"
-    state: directory
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-
 - name: Create the CA certificate and key pair
   ansible.builtin.command: "{{ cockroach }} cert create-ca --certs-dir={{ role_path }}/files/certs/ --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
   args:
@@ -145,11 +137,45 @@
       type: Opaque
   loop: "{{ clusters }}"
 
-- name: create node certs
-  include_tasks: create_node_certs.yml
+
+- name: Create the certificate and key pair for your CockroachDB nodes
+  ansible.builtin.command: "{{ cockroach }} cert create-node localhost 127.0.0.1 cockroachdb-public cockroachdb-public.cockroachdb cockroachdb-public.cockroachdb.svc.cluster.local *.cockroachdb *.cockroachdb.cockroachdb *.cockroachdb.cockroachdb.svc.cluster.local *.us-east-2.cockroachdb.cockroachdb.svc.clusterset.local *.us-west-2.cockroachdb.cockroachdb.svc.clusterset.local *.ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local *.cockroachdb.cockroachdb.svc.clusterset.local --certs-dir={{ role_path }}/files/certs --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  args:
+    creates: "{{ role_path }}/files/certs/node.crt"
+
+- name: Fetch created node client certificate
+  set_fact:
+    node_crt: "{{ lookup('file', '{{ role_path }}/files/certs/node.crt') }}"
+
+- name: Fetch created node client key
+  set_fact:
+    node_key: "{{ lookup('file', '{{ role_path }}/files/certs/node.key') }}"
+
+- name: Create cockroachdb.node secret on managed item
+  kubernetes.core.k8s:
+    state: "{{ setState }}"
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      data:
+        ca.crt: "{{ var_ca_crt | b64encode }}"
+        client.root.crt: "{{ var_client_root_crt | b64encode }}"
+        client.root.key: "{{ var_client_root_key | b64encode }}"
+        node.crt: "{{ node_crt | b64encode }}"
+        node.key: "{{ node_key | b64encode }}"
+      metadata:
+        name: cockroachdb.node
+        namespace: cockroachdb
+      type: Opaque
   loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
+
+
+# - name: create node certs
+#   include_tasks: create_node_certs.yml
+#   loop: "{{ clusters }}"
+#   loop_control:
+#     index_var: my_idx
 
 - name: Create channel for cockroachdb application in ACM
   kubernetes.core.k8s:
@@ -228,23 +254,6 @@
           matchLabels:
             usage: cockroachdb
 
-- name: Wait till the cockroachdb-0 pod is ready
-  kubernetes.core.k8s_info:
-    kind: Pod 
-    name: cockroachdb-0
-    context: "{{ item.contexts }}"
-    namespace: cockroachdb
-    wait: yes
-    wait_sleep: 15
-    wait_timeout: 600
-    wait_condition:
-      type: Initialized
-      status: True
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
-
 - name: Create the serviceExport for cockroachdb service
   kubernetes.core.k8s:
     wait: yes 
@@ -254,14 +263,6 @@
       apiVersion: multicluster.x-k8s.io/v1alpha1
       kind: ServiceExport
       metadata:
-        name: "cockroachdb-{{ item.name }}"
+        name: cockroachdb
         namespace: cockroachdb
   loop: "{{ clusters }}"
-
-- name: Run cockroach init to complete the node startup process and have them join together as a cluster
-  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-  register: cockroachdb_join
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
