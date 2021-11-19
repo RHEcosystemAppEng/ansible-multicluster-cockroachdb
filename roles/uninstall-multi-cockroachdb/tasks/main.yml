@@ -110,14 +110,6 @@
           matchLabels:
             app: cockroachdb-app
 
-- name: Fetch created node client certificate
-  set_fact:
-    node_cert: "{{ lookup('file', '{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/cluster0/node.crt') }}"
-
-- name: Fetch created node client key
-  set_fact:
-    node_key: "{{ lookup('file', '{{ playbook_dir }}/roles/install-multi-cockroachdb/files/certs/cluster0/node.key') }}"
-
 - name: Fetch created client certificate and key pair
   ignore_errors: yes
   set_fact:
@@ -126,6 +118,8 @@
     - {file: ca.crt, name: ca_crt}
     - {file: client.root.crt, name: client_root_crt}
     - {file: client.root.key, name: client_root_key}
+    - {file: node.crt, name: node_crt}
+    - {file: node.key, name: node_key }
 
 - name: Delete cockroachdb.node secret on managed clusters
   ignore_errors: yes
@@ -139,8 +133,8 @@
         ca.crt: "{{ var_ca_crt | b64encode }}"
         client.root.crt: "{{ var_client_root_crt | b64encode }}"
         client.root.key: "{{ var_client_root_key | b64encode }}"
-        node.crt: "{{ vars['node_cert'] | b64encode }}"
-        node.key: "{{ vars['node_key'] | b64encode }}"
+        node.crt: "{{ var_node_crt | b64encode }}"
+        node.key: "{{ var_node_key | b64encode }}"
       metadata:
         name: cockroachdb.node
         namespace: cockroachdb

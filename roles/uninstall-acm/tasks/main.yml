@@ -121,7 +121,7 @@
   loop: "{{clusters}}"
 
 
-- name: Remove Klusterlet CR from the managedcluster if still present
+- name: Remove Klusterlet CR from the managedcluster    present
   ignore_errors: yes
   kubernetes.core.k8s:
     state: absent
