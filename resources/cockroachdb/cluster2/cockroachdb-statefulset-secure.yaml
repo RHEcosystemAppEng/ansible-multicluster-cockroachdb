@@ -248,9 +248,9 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
+            --advertise-host $(hostname).ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
-            --join {{ format_join_command }}
+            --join cockroachdb-0.us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.us-west-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.us-west-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.us-west-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
