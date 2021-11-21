@@ -27,7 +27,7 @@ cockroach:
 app_repo: 
 
 
-# Git credentials
+# Git variables
 git_url: 
 git_key: 
 git_branch: 'master'
