@@ -1,6 +1,7 @@
 ---
 - include_tasks: unpack.yml
 
+# Add change path to playbook_dir
 - name: git add all new files
   ansible.builtin.shell: "git add -- {{ playbook_dir }}/resources/cockroachdb/"
 

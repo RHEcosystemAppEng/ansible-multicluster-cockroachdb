@@ -1,8 +1,4 @@
 ---
-- name: set default for state
-  set_fact: 
-    kubectl: /usr/local/bin/kubectl
-  when: setState is not defined
 
 - name: Namespaces and objects are being deleted from Managed Clusters
   ansible.builtin.debug:

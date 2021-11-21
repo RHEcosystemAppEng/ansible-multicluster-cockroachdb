@@ -1,8 +1,4 @@
 ---
-- name: set default for state
-  set_fact: 
-    setState: present
-  when: setState is not defined
 
 - name: Create pull secret variable
   set_fact: 
@@ -12,7 +8,7 @@
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
-    state:  "{{ setState }}"
+    state: present
     definition:
       apiVersion: project.openshift.io/v1
       description: hub
@@ -26,7 +22,7 @@
     wait: yes
     context: "{{ hub_context }}"
     namespace: hub
-    state: "{{ setState }}"
+    state: present
     definition:
       apiVersion: v1
       kind: Secret
@@ -40,7 +36,7 @@
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
-    state: "{{ setState }}"
+    state: present
     namespace: hub
     definition:
       apiVersion: operators.coreos.com/v1
@@ -55,7 +51,7 @@
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
-    state: "{{ setState }}"
+    state: present
     namespace: hub
     definition:
       apiVersion: operators.coreos.com/v1alpha1
@@ -86,7 +82,7 @@
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
-    state: "{{ setState }}"
+    state: present
     namespace: hub
     definition:
       apiVersion: operator.open-cluster-management.io/v1

@@ -1,38 +1,37 @@
 # cluster name, cluster count, kubeconfig context
-# Example 
-# clusters:
-#   - {name: cluster1, count: "1", contexts: cluster1}
-#   - {name: cluster2, count: "2", contexts: cluster2}
-
 clusters:
-    - {name: us-east-2, contexts: us-east-2}
-    - {name: us-west-2, contexts: us-west-2}
+  - {name: cluster1, count: "1", contexts: cluster1}
+  - {name: cluster2, count: "2", contexts: cluster2}
 
+
+# AWS credentials set to environment variables:
+# AWS_ACCESS_KEY and AWS_SECRET_KEY
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: hub
+hub_context: 
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
 ocp_pull_secret_path: 
 
 # ManagedClusterSet Name
-clusterset_name: cockroachdb-clusterset
-
-kubeconfig_path: 
-
-# AWS credentials
-aws_creds_path: 
-
-# AWS credentials
-aws_access_key_id: 
-aws_secret_access_key: 
+clusterset_name: 
 
 # kubectl path
 kubectl: 
 
-# Set cockroachdb cli path if needed default /usr/local/bin/cockroach
-# cockroach:
+# Cockroachdb cli path 
+cockroach: 
 
 # Application repo for cockroachdb
-app_repo: https://github.com/RHEcosystemAppEng/ansible-multicluster-cockroachdb.git
+app_repo: 
+
+
+# Git credentials
+git_url: 
+git_key: 
+git_branch: 'master'
+git_msg: 'update files with ansible'
+git_remove_local: false
+git_username: ansible_git
+git_email: ansible_git@ansible.com 

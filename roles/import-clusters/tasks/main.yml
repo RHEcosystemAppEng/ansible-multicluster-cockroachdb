@@ -1,12 +1,4 @@
 ---
-- name: set default for state
-  set_fact: 
-    setState: present
-  when: setState is not defined
-
-- name: set default for state
-  set_fact: 
-    kubeconfig_file: "{{ lookup('file', '{{ kubeconfig_path }}') }}"
 
 - name: Wait till MultiClusterHub is created
   kubernetes.core.k8s_info:
@@ -23,8 +15,8 @@
 
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
-    wait: yes 
-    state:  "{{ setState }}"
+    wait: yes
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: project.openshift.io/v1
@@ -40,7 +32,7 @@
 - name: Add clusters as managed clusters
   kubernetes.core.k8s:
     wait: yes
-    state: "{{ setState }}"
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
@@ -56,7 +48,7 @@
 - name: Create the klusterlet addon
   kubernetes.core.k8s:
     wait: yes
-    state: "{{ setState }}"
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: agent.open-cluster-management.io/v1
@@ -86,13 +78,11 @@
 - name: Pause for import and klusterlet secrets to be created
   pause:
     seconds: 10
-  when: setState == "present"
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
     importSecret_{{ my_idx }}: "{{ lookup('kubernetes.core.k8s', kind='Secret', namespace=item.name , resource_name=item.name + '-import') }}"
     register: importSecret_{{ my_idx }}
-  when:  setState == "present"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
@@ -101,7 +91,6 @@
   ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["crds.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
-  when:  setState == "present"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
@@ -110,7 +99,6 @@
   ansible.builtin.shell: echo "{{ vars['importSecret_' + my_idx|string]["data"]["import.yaml"] }}" | base64 --decode > {{ role_path }}/files/{{ item.name }}-import.yaml
   args:
     creates: "{{ role_path }}/files/{{ item.name }}-import.yaml"
-  when:  setState == "present"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
@@ -118,7 +106,7 @@
 - name: Create klusterlet CRD on managed clusters
   kubernetes.core.k8s:
     wait: yes
-    state: "{{ setState }}"
+    state: present
     context: "{{item.contexts}}"
     src: "{{ role_path }}/files/{{ item.name }}-klusterlet-crd.yaml"
   loop: "{{ clusters }}"
@@ -126,7 +114,6 @@
 - name: Pause for klusterlet CRD to be created
   pause:
     seconds: 40
-  when: setState == "present"
 
 - name: Import managed clusters
   ansible.builtin.command: "{{ kubectl }} apply -f {{ role_path }}/files/{{ item.name }}-import.yaml --context {{ item.contexts }}"

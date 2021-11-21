@@ -1,8 +1,4 @@
 ---
-- name: set default for state
-  set_fact: 
-    setState: present
-  when: setState is not defined
 
 - name: set default for clusterSet Name
   set_fact: 
@@ -12,7 +8,7 @@
 - name: Create managed cluster set 
   kubernetes.core.k8s:
     wait: yes
-    state:  "{{ setState }}"
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1alpha1
@@ -23,7 +19,7 @@
 - name: Create rules for RBAC ClusterRole
   kubernetes.core.k8s:
     wait: yes
-    state: "{{ setState }}"
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: rbac.authorization.k8s.io/v1
@@ -39,7 +35,7 @@
 - name: Create the cluster set
   kubernetes.core.k8s:
     wait: yes
-    state: "{{ setState }}"
+    state: present
     context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
