@@ -57,7 +57,7 @@
     name: ansible-git
     tasks_from: push
 
-- name: git push
+- name: git clean up
   include_role:
     name: ansible-git
     tasks_from: cleanup_keys
