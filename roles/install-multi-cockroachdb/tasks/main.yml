@@ -57,11 +57,6 @@
     name: ansible-git
     tasks_from: push
 
-- name: git clean up
-  include_role:
-    name: ansible-git
-    tasks_from: cleanup_keys
-
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
     wait: yes
@@ -254,6 +249,23 @@
         name: cockroachdb
         namespace: cockroachdb
   loop: "{{ clusters }}"
+
+- name: Wait till the cockroachdb-0 pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait: yes
+    wait_sleep: 15
+    wait_timeout: 600
+    wait_condition:
+      type: Initialized
+      status: True
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"

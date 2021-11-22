@@ -1,8 +1,8 @@
 # cluster name, cluster count, kubeconfig context
+# Example 
 clusters:
-  - {name: cluster1, contexts: cluster1}
-  - {name: cluster2, contexts: cluster2}
-
+  - {name: cluster1, count: "1", contexts: cluster1}
+  - {name: cluster2, count: "2", contexts: cluster2}
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
@@ -27,11 +27,15 @@ cockroach:
 app_repo: 
 
 
-# Git variables
+
+### Git credentials ###
+
+# Git ssh environemnt variable need to be set 
+# GIT_SSH_COMMAND
+
 git_url: 
-git_key: 
-git_branch: 'master'
+git_branch: 
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: ansible_git
-git_email: ansible_git@ansible.com 
+git_username: trujillm
+git_email: matrujil@redhat.com
