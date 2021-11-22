@@ -1,4 +1,8 @@
 ---
+- name: set default for state
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: setState is not defined
 
 - name: Namespaces and objects are being deleted from Managed Clusters
   ansible.builtin.debug:
@@ -10,7 +14,7 @@
     state: absent
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
-    wait_timeout: 1500 # Wait 25 mins max
+    wait_timeout: 2500
     context: hub
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
