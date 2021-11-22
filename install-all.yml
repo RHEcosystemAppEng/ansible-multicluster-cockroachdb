@@ -1,5 +1,5 @@
 ---
-- name: Install Everything
+- name: Install of ACM, import clusters, clustersets, submariner-addon, multi-cockroachdb deployment
   hosts: localhost
   gather_facts: false
 
