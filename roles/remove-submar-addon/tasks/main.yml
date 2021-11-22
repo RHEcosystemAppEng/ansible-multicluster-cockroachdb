@@ -41,8 +41,8 @@
           namespace: "{{ item.name }}"
       type: Opaque
       data:
-          aws_access_key_id: "{{ aws_access_key_id | b64encode }}"
-          aws_secret_access_key: "{{ aws_secret_access_key | b64encode }}"
+          aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY') | b64encode }}"
+          aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_KEY') | b64encode }}"
   loop: "{{ clusters }}"
 
 - name: Pause and wait to delete clusterset
