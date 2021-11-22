@@ -1,7 +1,7 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: cluster1, count: "1", contexts: cluster1}
-  - {name: cluster2, count: "2", contexts: cluster2}
+  - {name: cluster1, contexts: cluster1}
+  - {name: cluster2, contexts: cluster2}
 
 
 # AWS credentials set to environment variables:
@@ -27,7 +27,7 @@ cockroach:
 app_repo: 
 
 
-# Git credentials
+# Git variables
 git_url: 
 git_key: 
 git_branch: 'master'
