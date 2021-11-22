@@ -87,43 +87,41 @@
       metadata:
           name: hub
 
-#Check if klusterlet is there, if it is, delete it
-- name: Wait for registry object bucket claim                               
+#ACM intermittently leaves klusterlets, make sure it was deleted when the managed cluster was deleted
+- name: Check if klusterlet is still installed                            
   kubernetes.core.k8s_info:                                                 
     api_version: operator.open-cluster-management.io/v1   
     context: "{{ item.contexts }}"    
     kind: Klusterlet                    
     name: klusterlet    
     namespace: open-cluster-management-agent
-  register: klusterlet_registry       
+  register: klusterlet_registry   
   loop: "{{ clusters }}"
+
+- name: Debug Klusterlet
+  debug: 
+    var: klusterlet_registry
 
 - name: Show Klusterlet_registry
   ansible.builtin.debug:
     msg:
-    - "Klusterlet registry: {{ klusterlet_registry }}"
+    - "item.changed={{item.changed}}"
+  loop: "{{ klusterlet_registry.results }}"
 
-# - name: Patch Klusterlet CR from the managedcluster if still present
-#   ignore_errors: yes
-#   kubernetes.core.k8s:
-#     state: absent
-#     wait: yes
-#     wait_sleep: 30 # Check every 30 seconds
-#     wait_timeout: 1500 # Wait 25 mins max
-#     context: "{{ item.contexts }}"
-#     definition:
-#       apiVersion: operator.open-cluster-management.io/v1
-#       kind: klusterlet
-#       metadata:
-#         name: klusterlet
-#         finalizers: null
-#       spec:
-#         clusterName: "{{ item.name }}"
-#         namespace: open-cluster-management-agent
-#   loop: "{{ clusters }}"
-#   when: klusterlet_registry['results'][0]['msg'] is not defined 
+- name: Print not Changed
+  debug: 
+    msg: "Gets printed only if this item is not changed - {{item}}"
+  when: "{{item.changed == false}}"
+  loop: "{{klusterlet_registry.results}}"
 
-- name: Remove Klusterlet CR from the managedcluster if still present
+- name: Patch Klusterlet CR from the managedcluster if still present
+  ignore_errors: yes
+  shell: |
+    {{ kubectl }} patch klusterlet klusterlet --context {{ item.name }} -n open-cluster-management-agent  -p '{"metadata":{"finalizers":null}}' --type=merge
+  loop: "{{clusters}}"
+
+
+- name: Remove Klusterlet CR from the managedcluster    present
   ignore_errors: yes
   kubernetes.core.k8s:
     state: absent
@@ -140,7 +138,7 @@
         clusterName: "{{ item.name }}"
         namespace: open-cluster-management-agent
   loop: "{{ clusters }}"
-  when: klusterlet_registry['results'][0]['msg'] is not defined 
+  # when: klusterlet_registry['results'][0]['msg'] is not defined 
 
 - name: Delete ClusterRoles 
   shell: |

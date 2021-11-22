@@ -47,4 +47,4 @@
 
 - name: Pause and wait to delete clusterset
   pause:
-    seconds: 120
+    seconds: 20
