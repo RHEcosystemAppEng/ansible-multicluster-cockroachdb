@@ -254,3 +254,12 @@
         name: cockroachdb
         namespace: cockroachdb
   loop: "{{ clusters }}"
+
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  register: cockroachdb_join
+  ignore_errors: true
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
