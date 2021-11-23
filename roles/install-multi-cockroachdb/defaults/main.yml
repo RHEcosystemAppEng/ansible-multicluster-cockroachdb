@@ -1,2 +1,5 @@
 # Empy join command list for use later when building out the join command
 join_command: []
+
+# Empty list for node crt command
+node_crt_key_command: []

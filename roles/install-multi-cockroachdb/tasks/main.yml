@@ -36,6 +36,28 @@
   ansible.builtin.debug:
     msg: "{{ format_join_command }}"
 
+- name: Create variables for node crt command for each cluster
+  set_fact: 
+    node_crt_key_{{ item.contexts }}: "*.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+
+- name: Creat list of node crt key command
+  ansible.builtin.set_fact:
+    node_crt_key_command: "{{ node_crt_key_command | default('') + [vars['node_crt_key_' + item.contexts|string]] }}"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+
+- name: Format node crt key command
+  ansible.builtin.set_fact:
+    format_node_crt_key_command: "{{ node_crt_key_command | join (' ') }}"
+
+- name: Dispalying formatted join command 
+  ansible.builtin.debug:
+    msg: "{{ format_node_crt_key_command }}"
+
 - name: Create directories needed for cockroachdb statefuleset
   ansible.builtin.file:
     path: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}"
@@ -127,9 +149,8 @@
       type: Opaque
   loop: "{{ clusters }}"
 
-
 - name: Create the certificate and key pair for your CockroachDB nodes
-  ansible.builtin.command: "{{ cockroach }} cert create-node localhost 127.0.0.1 cockroachdb-public cockroachdb-public.cockroachdb cockroachdb-public.cockroachdb.svc.cluster.local *.cockroachdb *.cockroachdb.cockroachdb *.cockroachdb.cockroachdb.svc.cluster.local *.us-east-2.cockroachdb.cockroachdb.svc.clusterset.local *.us-west-2.cockroachdb.cockroachdb.svc.clusterset.local *.ap-southeast-1.cockroachdb.cockroachdb.svc.clusterset.local *.cockroachdb.cockroachdb.svc.clusterset.local --certs-dir={{ role_path }}/files/certs --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
+  ansible.builtin.command: "{{ cockroach }} cert create-node localhost 127.0.0.1 cockroachdb-public cockroachdb-public.cockroachdb cockroachdb-public.cockroachdb.svc.cluster.local *.cockroachdb *.cockroachdb.cockroachdb *.cockroachdb.cockroachdb.svc.cluster.local {{ format_node_crt_key_command }} *.cockroachdb.cockroachdb.svc.clusterset.local --certs-dir={{ role_path }}/files/certs --ca-key={{ role_path }}/files/my-safe-directory/ca.key"
   args:
     creates: "{{ role_path }}/files/certs/node.crt"
 
@@ -250,28 +271,3 @@
         namespace: cockroachdb
   loop: "{{ clusters }}"
 
-- name: Wait till the cockroachdb-0 pod is ready
-  kubernetes.core.k8s_info:
-    kind: Pod 
-    name: cockroachdb-0
-    context: "{{ item.contexts }}"
-    namespace: cockroachdb
-    wait: yes
-    wait_sleep: 15
-    wait_timeout: 600
-    wait_condition:
-      type: Initialized
-      status: True
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
-
-- name: Run cockroach init to complete the node startup process and have them join together as a cluster
-  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-  register: cockroachdb_join
-  ignore_errors: true
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: my_idx == 0
