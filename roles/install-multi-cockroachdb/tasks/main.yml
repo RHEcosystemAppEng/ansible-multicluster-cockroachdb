@@ -38,14 +38,14 @@
 
 - name: Create variables for node crt command for each cluster
   set_fact: 
-    node_crt_key_{{ item.contexts }}: "*.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local"
+    node_crt_key_{{ my_idx }}: "*.{{ item.contexts }}.cockroachdb.cockroachdb.svc.clusterset.local"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
 
 - name: Creat list of node crt key command
   ansible.builtin.set_fact:
-    node_crt_key_command: "{{ node_crt_key_command | default('') + [vars['node_crt_key_' + item.contexts|string]] }}"
+    node_crt_key_command: "{{ node_crt_key_command | default('') + [vars['node_crt_key_' + my_idx|string]] }}"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
@@ -271,3 +271,49 @@
         namespace: cockroachdb
   loop: "{{ clusters }}"
 
+- name: Wait till the cockroachdb-0 pod is ready
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait: yes
+    wait_sleep: 15
+    wait_timeout: 600
+    wait_condition:
+      type: Initialized
+      status: True
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
+
+- name: get status
+  kubernetes.core.k8s_info:
+    kind: Pod 
+    name: cockroachdb-0
+    context: "{{ item.contexts }}"
+    namespace: cockroachdb
+    wait_condition:
+      type: Ready
+      status: True
+  loop: "{{ clusters }}"
+  register: cockroachdb_ready
+  loop_control:
+    index_var: my_idx
+  when: my_idx == 0
+
+- name: get status output
+  set_fact:
+    cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
+
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  register: cockroachdb_join
+  ignore_errors: true
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: 
+    - my_idx == 0
+    - cockroachdb_ready_status != ""
