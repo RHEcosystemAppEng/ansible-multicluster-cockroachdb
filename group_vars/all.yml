@@ -1,8 +1,8 @@
 # cluster name, cluster count, kubeconfig context
 # Example 
 clusters:
-  - {name: cluster1, count: "1", contexts: cluster1}
-  - {name: cluster2, count: "2", contexts: cluster2}
+  - {name: cluster1, contexts: cluster1}
+  - {name: cluster2, contexts: cluster2}
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
