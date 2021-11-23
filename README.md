@@ -16,6 +16,8 @@ The automation will do the following:
   
   - **Currently only supported on AWS**
   - 1 cluster must meet the [requirements](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.3/html/install/installing#sizing-your-cluster "ACM install") needed for Advanced Cluster Management
+
+    - Running openshift =< 4.7.13
   - 2 or more clusters will be imported as managed clusters and connected via the submariner-addon
   - Managed clusters Pod and Service Classless Inter-Domain Routing (CIDR) between the clusters that do not overlap
   - Your kubeconfig contexts must have the necessary permissions sets to create the kuberenetes objects needed for the automation
@@ -30,12 +32,41 @@ The automation will do the following:
 
 [kubectl](https://kubernetes.io/docs/tasks/tools/ "kubectl install") - The Kubernetes command-line tool
 
+[cockroach cli](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-mac.html "cockroachdb cli install") - The cockroachdb command line tool
+
 [kubeconfig context configured](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/ "Configure Access to Multiple Clusters") - Your kubeconfig must be configured properly with the context of each of your clusters
   - The context name is vitally import as it is used as the **[clusterid](https://submariner.io/operations/deployment/subctl/#join)** for submariner and must be named in compliance with this
   - You should of a context setup for all the clusters that you want to use for the automation hub, and managed clusters
 
+Access to push and clone from the remote repository
+
 ## Setup
-Add variables
+Add environment variables
+
+| Environment variable | Description |
+| --- | --- |
+| AWS_ACCESS_KEY | The AWS access key id for the AWS clusters you are importing
+| AWS_SECRET_KEY | The AWS secret key for the AWS clusters you are importing
+| GIT_SSH_COMMAND | Git push will use this command instead of ssh when connecting to a remote system
+
+
+Modify variables in **group_vars/all.yml**
+
+| Variable | Description
+| --- | --- |
+| clusters | A list that includes: name of the cluster you want, and the name of the context associated with the cluster in your kubeconfig
+| hub_context | The context name for your hub cluster
+| ocp_pull_secret_path | The path to your OpenShift container platform [pull secret](cloud.redhat.com/openshift/install/pull-secret)
+| clusterset_name | Default cockroackdb-clusterset the name of the clusterset you want
+| kubectl | The path to your kubectl 
+| cockroach | The path to your cockroachdb cli
+| app_repo | Your repo location in https format
+| git_url | Your repo location in ssh format
+| git_branch | Defaults to master
+| git_msg | Defaults to "update files with ansible" is the message sent when automation pushes 
+| git_remove_local | Defaults to false
+| git_username | Defaults to ansible_git your username for github
+| git_email | Defaults to ansible_git@ansible.com the email associated with your github account
 
 ## Usage
 | Description | Command |

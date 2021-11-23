@@ -38,5 +38,5 @@ git_url:
 git_branch: 
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: trujillm
-git_email: matrujil@redhat.com
+git_username: ansible_git
+git_email: ansible_git@ansible.com
