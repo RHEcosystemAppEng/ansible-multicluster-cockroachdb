@@ -32,6 +32,7 @@ app_repo:
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
+# example: GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
 
 git_url: 
 git_branch: 
