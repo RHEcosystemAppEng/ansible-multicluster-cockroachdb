@@ -1,42 +1,42 @@
 # cluster name, cluster count, kubeconfig context
-# Example 
 clusters:
-  - {name: cluster1, contexts: cluster1}
-  - {name: cluster2, contexts: cluster2}
+  - {name: ansible-managed-1, contexts: ansible-managed-1}
+  - {name: ansible-managed-2, contexts: ansible-managed-2}
+
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: 
+hub_context: hub
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
-ocp_pull_secret_path: 
+ocp_pull_secret_path: /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/pull-secret.json
 
 # ManagedClusterSet Name
-clusterset_name: 
+clusterset_name: cockroachdb-clusterset
 
 # kubectl path
-kubectl: 
+kubectl: /usr/local/bin/kubectl
 
 # Cockroachdb cli path 
-cockroach: 
+cockroach: /usr/local/bin/cockroach
 
 # Application repo for cockroachdb
-app_repo: 
+app_repo: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
 
 
+# Git variables
+git_url: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
+git_branch: 'main'
+git_msg: 'update files with ansible'
+git_remove_local: false
+git_username: cm891237
+git_email: cm891237@gmail.com
 
 ### Git credentials ###
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# example: GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
-
-git_url: 
-git_branch: 
-git_msg: 'update files with ansible'
-git_remove_local: false
-git_username: ansible_git
-git_email: ansible_git@ansible.com
+# export GIT_SSH_COMMAND="ssh -i /Users/cmwylie19/.ssh/gh_cm891237"
