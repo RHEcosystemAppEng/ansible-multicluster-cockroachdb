@@ -38,7 +38,7 @@
     - when: checkgit != ""
 
 - name: git commit
-  ansible.builtin.shell: git commit -m "'{{ git_msg }}'"
+  ansible.builtin.shell: git commit -m "uninstall - rm resources folder"
   args:
    chdir: "{{ playbook_dir }}"
   ignore_errors: true

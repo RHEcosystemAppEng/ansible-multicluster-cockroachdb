@@ -2,7 +2,7 @@
 
 # Add change path to playbook_dir
 - name: git add removed resources folder
-  ansible.builtin.shell: "git add ."
+  ansible.builtin.shell: "git rm --cached {{ playbook_dir }}/resources"
   args:
    chdir: "{{ playbook_dir }}"
 
