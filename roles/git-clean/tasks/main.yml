@@ -2,7 +2,7 @@
 
 # Add change path to playbook_dir
 - name: git add removed resources folder
-  ansible.builtin.shell: "git rm --cached {{ playbook_dir }}/resources"
+  ansible.builtin.shell: "git rm -r --cached {{ playbook_dir }}/resources"
   args:
    chdir: "{{ playbook_dir }}"
 
@@ -47,7 +47,7 @@
     - when: checkgit != ""
 
 - name: git commit
-  ansible.builtin.shell: git commit -m "'{{ git_msg }}'"
+  ansible.builtin.shell: git commit -m "uninstall - rm resources folder"
   args:
    chdir: "{{ playbook_dir }}"
   ignore_errors: true
