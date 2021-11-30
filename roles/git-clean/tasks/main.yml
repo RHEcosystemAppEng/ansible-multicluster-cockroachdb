@@ -2,7 +2,7 @@
 
 # Add change path to playbook_dir
 - name: git add removed resources folder
-  ansible.builtin.shell: "git add -- {{ playbook_dir }}"
+  ansible.builtin.shell: "git add ."
   args:
    chdir: "{{ playbook_dir }}"
 
@@ -14,12 +14,16 @@
 
 - name: debug git_add_status
   ansible.builtin.debug:
-    msg: git_add_status
+    msg: "{{git_add_status}}"
 
 - name: Check statefulsets have been added to staged
   ignore_errors: yes
   set_fact: 
-    checkgit: "{{ git_add_status.stdout_lines | regex_search('new file:   resources/cockroachdb/(.*)/cockroachdb-statefulset-secure.yaml') }}"
+    checkgit: "{{ git_add_status.stdout_lines | regex_search('deleted') }}"
+
+- name: debug checkgit
+  ansible.builtin.debug:
+    msg: "{{checkgit}}"
 
 - name: Warning message
   debug:
