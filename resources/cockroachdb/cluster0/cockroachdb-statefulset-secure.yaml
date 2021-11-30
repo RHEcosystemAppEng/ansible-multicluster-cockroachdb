@@ -248,7 +248,7 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local
+            --advertise-host $(hostname).ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
             --join cockroachdb-0.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)

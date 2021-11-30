@@ -203,3 +203,8 @@
   ansible.builtin.file:
     path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/my-safe-directory/"
     state: absent
+
+# - name: git push
+#   include_role:
+#     name: ansible-git-cleam
+#     tasks_from: push
