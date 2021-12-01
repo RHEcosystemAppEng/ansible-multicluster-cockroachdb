@@ -2,6 +2,7 @@
 
 - name: Wait till submariner add on install completes 
   kubernetes.core.k8s_info:
+    api_version: addon.open-cluster-management.io/v1alpha1
     kind: ManagedClusterAddOn 
     name: submariner
     namespace: "{{ item.name }}"
@@ -316,4 +317,4 @@
     index_var: my_idx
   when: 
     - my_idx == 0
-    - cockroachdb_ready_status != ""
+    - cockroachdb_ready_status[0] != ""
