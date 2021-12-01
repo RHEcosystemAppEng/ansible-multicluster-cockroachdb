@@ -2,6 +2,7 @@
 
 # Add change path to playbook_dir
 - name: git add removed resources folder
+  ignore_errors: yes # incase the user has already deleted, or run the deletion script twice
   ansible.builtin.shell: "git rm -r --cached {{ playbook_dir }}/resources"
   args:
    chdir: "{{ playbook_dir }}"
