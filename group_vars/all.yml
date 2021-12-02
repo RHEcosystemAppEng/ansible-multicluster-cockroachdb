@@ -4,7 +4,7 @@ clusters:
   - {name: ansible-managed-2, contexts: ansible-managed-2}
 
 # Choose cloud to install on gcp or aws
-cloud: aws
+cloud: gcp
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
