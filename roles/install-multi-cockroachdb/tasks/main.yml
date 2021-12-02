@@ -349,3 +349,5 @@
   when: 
     - my_idx == 0
     - cockroachdb_ready_status[0] != ""
+
+

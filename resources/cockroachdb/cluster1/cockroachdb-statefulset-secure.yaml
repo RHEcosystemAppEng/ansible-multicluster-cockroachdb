@@ -220,7 +220,7 @@ spec:
             --advertise-host $(hostname -f)
             --http-addr 0.0.0.0
             --join JOINLIST
-            --locality LOCALITYLIST
+            # --locality LOCALITYLIST
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
       # No pre-stop hook is required, a SIGTERM plus some time is all that's
