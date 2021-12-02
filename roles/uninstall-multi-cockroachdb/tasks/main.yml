@@ -204,6 +204,28 @@
     path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/my-safe-directory/"
     state: absent
 
+- name: Remove ClusterRoleBindings for GCP
+  kubernetes.core.k8s:
+    wait: yes
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        creationTimestamp: null
+        name: "{{ gcp_user }}-cluster-admin-binding"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ gcp_user }}"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
+
 - name: git push
   include_role:
     name: git-clean

@@ -6,6 +6,10 @@ clusters:
 # Choose cloud to install on gcp or aws
 cloud: gcp
 
+# GCP User
+# discovered by $> gcloud info | grep Account
+gcp_user: cwylie@redhat.com
+
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
 

@@ -1,4 +1,25 @@
 ---
+- name: Create ClusterRoleBindings for GCP
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        creationTimestamp: null
+        name: "{{ gcp_user }}-cluster-admin-binding"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ gcp_user }}"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
 
 - name: Wait till submariner add on install completes 
   kubernetes.core.k8s_info:
@@ -67,13 +88,23 @@
   loop_control:
     index_var: my_idx
 
-- name: Template a file to /etc/file.conf
+- name: Template a file to /etc/file.conf AWS
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yaml"
     dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
+  when: cloud == "aws"
+
+- name: Template a file to /etc/file.conf GCP
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yaml"
+    dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: cloud == "gcp"
 
 - name: git push
   include_role:
