@@ -1,4 +1,37 @@
 ---
+- name: Create secret for GCP credentials
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ hub_context }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+          name: "{{ item.name }}-gcp-creds"
+          namespace: "{{ item.name }}"
+      type: Opaque
+      data:
+          osServiceAccount.json: "{{ lookup('env', 'OCP_SERVICE_ACCOUNT') | b64encode }}"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
+
+- name: Create submariner addon GCP
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ hub_context }}"
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-gcp-creds"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
 
 - name: Create secret for AWS credentials
   kubernetes.core.k8s:
@@ -16,8 +49,9 @@
           aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY') | b64encode }}"
           aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_KEY') | b64encode }}"
   loop: "{{ clusters }}"
+  when: cloud == "aws"
 
-- name: Create submariner addon
+- name: Create submariner addon AWS
   kubernetes.core.k8s:
     wait: yes
     state: present
@@ -32,6 +66,7 @@
           credentialsSecret:
             name: "{{ item.name }}-aws-creds"
   loop: "{{ clusters }}"
+  when: cloud == "aws"
 
 - name: Deploy Submariner on the managed clusters
   kubernetes.core.k8s:

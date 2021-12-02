@@ -13,7 +13,23 @@
           installNamespace: submariner-operator
   loop: "{{ clusters }}"
 
-- name: Remove submariner addon
+- name: Remove submariner addon GCP
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-gcp-creds"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
+
+- name: Remove submariner addon AWS
   kubernetes.core.k8s:
     state: absent
     wait: yes
@@ -27,6 +43,24 @@
           credentialsSecret:
             name: "{{ item.name }}-aws-creds"
   loop: "{{ clusters }}"
+  when: cloud == "aws"
+
+- name: Remove secret for GCP credentials
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    context: hub
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+          name: "{{ item.name }}-gcp-creds"
+          namespace: "{{ item.name }}"
+      type: Opaque
+      data:
+          osServiceAccount.json: "{{ lookup('env', 'OCP_SERVICE_ACCOUNT') | b64encode }}"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
 
 - name: Remove secret for AWS credentials
   kubernetes.core.k8s:
@@ -44,6 +78,7 @@
           aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY') | b64encode }}"
           aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_KEY') | b64encode }}"
   loop: "{{ clusters }}"
+  when: cloud == "aws"
 
 - name: Pause and wait to delete clusterset
   pause:

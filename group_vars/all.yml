@@ -3,9 +3,14 @@ clusters:
   - {name: ansible-managed-1, contexts: ansible-managed-1}
   - {name: ansible-managed-2, contexts: ansible-managed-2}
 
+# Choose cloud to install on gcp or aws
+cloud: aws
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
+
+# GCP credentials set to environment variables:
+# OCP_SERVICE_ACCOUNT
 
 # Hub context - set to the name of cluster for ACM and hub install
 hub_context: hub
