@@ -54,7 +54,7 @@
   ansible.builtin.set_fact:
     format_join_command: "{{ join_command | join (',') }}"
 
-- name: Dispalying formatted join command 
+- name: Displaying formatted join command 
   ansible.builtin.debug:
     msg: "{{ format_join_command }}"
 
