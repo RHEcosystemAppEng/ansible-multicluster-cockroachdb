@@ -339,6 +339,10 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
+- name: Pause and wait for pods from StatefulSet to become ready
+  pause:
+    seconds: 300
+
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
   register: cockroachdb_join
