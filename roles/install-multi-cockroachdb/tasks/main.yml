@@ -125,6 +125,42 @@
           name: cockroachdb
   loop: "{{ clusters }}"
 
+- name: Create Service Account for cockroachdb name on managed in GCP
+  kubernetes.core.k8s:
+    state: present
+    wait: yes
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        creationTimestamp: null
+        name: cockroachdb
+        namespace: cockroachdb
+  when: cloud == "gcp"
+  loop: "{{ clusters }}"
+  
+- name: Create ClusterRoleBinding for cockroachdb Service Account on managed in GCP
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: system:openshift:scc:anyuid
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: system:openshift:scc:anyuid
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: system:serviceaccounts:cockroachdb
+  when: cloud == "gcp"
+  loop: "{{ clusters }}"
+
 - name: Create cockroachdb namespaces for hub channel
   kubernetes.core.k8s:
     wait: yes
@@ -339,9 +375,14 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
+- name: Recycle Submariner Gateway pods on GCP
+  ansible.builtin.command: "kubectl delete pod -l app=submariner-gateway --context {{ item.contexts }} -n submariner-operator"
+  loop: "{{ clusters }}"
+  when: cloud == "gcp"
+
 - name: Pause and wait for pods from StatefulSet to become ready
   pause:
-    seconds: 300
+    seconds: 480
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"

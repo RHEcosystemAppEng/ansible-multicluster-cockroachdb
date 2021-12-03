@@ -15,6 +15,7 @@ gcp_user: cwylie@redhat.com
 
 # GCP credentials set to environment variables:
 # OCP_SERVICE_ACCOUNT
+# ex. export OCP_SERVICE_ACCOUNT=$(cat sa.json)
 
 # Hub context - set to the name of cluster for ACM and hub install
 hub_context: hub
