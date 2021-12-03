@@ -151,6 +151,8 @@ spec:
       labels:
         app: cockroachdb
     spec:
+      securityContext:
+        runAsUser: 0
       serviceAccountName: cockroachdb
       affinity:
         podAntiAffinity:
@@ -234,7 +236,8 @@ spec:
       - name: certs
         secret:
           secretName: cockroachdb.node
-          defaultMode: 400
+          defaultMode: 0400
+
   podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate

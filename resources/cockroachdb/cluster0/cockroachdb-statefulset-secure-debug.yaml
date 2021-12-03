@@ -6,19 +6,6 @@ metadata:
     app: cockroachdb
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: system:openshift:scc:anyuid
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:openshift:scc:anyuid
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: Group
-  name: system:serviceaccounts:cockroachdb
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: cockroachdb
@@ -164,9 +151,9 @@ spec:
       labels:
         app: cockroachdb
     spec:
+      serviceAccountName: cockroachdb
       securityContext:
         runAsUser: 0
-      serviceAccountName: cockroachdb
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -209,7 +196,6 @@ spec:
           mountPath: /cockroach/cockroach-data
         - name: certs
           mountPath: /cockroach/cockroach-certs
-          readOnly: true
         env:
         - name: COCKROACH_CHANNEL
           value: kubernetes-multiregion
@@ -225,20 +211,23 @@ spec:
               divisor: "1Mi"
         command:
           - "/bin/bash"
-          - "-ecx"
+          # - "-ecx"
+          - "-c"
+          - sleep 3600
           # The use of qualified `hostname -f` is crucial:
           # Other nodes aren't able to look up the unqualified hostname.
-          - exec
-            /cockroach/cockroach
-            start
-            --logtostderr
-            --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
-            --http-addr 0.0.0.0
-            --join {{ format_join_command }}
-            --locality=region=cockroachdb,dns=$(hostname -f)
-            --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
-            --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
+          # - exec
+          #   /cockroach/cockroach
+          #   start
+          #   --logtostderr
+          #   --certs-dir /cockroach/cockroach-certs
+          #   --advertise-host $(hostname).ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local
+          #   --http-addr 0.0.0.0
+          #   --join cockroachdb-0.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.ansible-managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.ansible-managed-2.cockroachdb.cockroachdb.svc.clusterset.local
+          #   --locality=region=cockroachdb,dns=$(hostname -f)
+          #   --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
+          #   --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
+
       # No pre-stop hook is required, a SIGTERM plus some time is all that's
       # needed for graceful shutdown of a node.
       terminationGracePeriodSeconds: 60
@@ -250,6 +239,7 @@ spec:
         secret:
           secretName: cockroachdb.node
           defaultMode: 0400
+       
   podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate
