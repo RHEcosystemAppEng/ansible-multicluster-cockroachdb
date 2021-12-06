@@ -213,6 +213,8 @@ spec:
         env:
         - name: COCKROACH_CHANNEL
           value: kubernetes-multiregion
+        - name: COCKROACH_SKIP_KEY_PERMISSION_CHECK
+          value: "true"
         - name: GOMAXPROCS
           valueFrom:
             resourceFieldRef:

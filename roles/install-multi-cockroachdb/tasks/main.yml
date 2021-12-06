@@ -376,7 +376,7 @@
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
 - name: Recycle Submariner Gateway pods on GCP
-  ansible.builtin.command: "kubectl delete pod -l app=submariner-gateway --context {{ item.contexts }} -n submariner-operator"
+  ansible.builtin.shell: "{{ kubectl }} delete pod -l app=submariner-gateway --context {{ item.contexts }} -n submariner-operator"
   loop: "{{ clusters }}"
   when: cloud == "gcp"
 
