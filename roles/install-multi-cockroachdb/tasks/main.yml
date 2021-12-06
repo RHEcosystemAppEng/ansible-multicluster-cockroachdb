@@ -404,5 +404,5 @@
 
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
-  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  ansible.builtin.shell: "{{ kubectl }} exec --context ansible-managed-1 --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
   when: cloud == "gcp"

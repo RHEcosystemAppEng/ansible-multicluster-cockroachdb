@@ -1,4 +1,4 @@
-# Automated cockraochdb multicluster deployment
+# Automated cockroachdb multicluster deployment
 **Currently under construction**
 
 ## Synopsis
