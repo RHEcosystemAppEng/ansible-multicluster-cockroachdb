@@ -380,10 +380,10 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
-- name: Recycle Submariner Gateway pods on GCP
-  ansible.builtin.shell: "{{ kubectl }} delete pod -l app=submariner-gateway --context {{ item.contexts }} -n submariner-operator"
-  loop: "{{ clusters }}"
-  when: cloud == "gcp"
+# - name: Recycle Submariner Gateway pods on GCP # No longer necessary
+#   ansible.builtin.shell: "{{ kubectl }} delete pod -l app=submariner-gateway --context {{ item.contexts }} -n submariner-operator"
+#   loop: "{{ clusters }}"
+#   when: cloud == "gcp"
 
 - name: Pause and wait for pods from StatefulSet to become ready
   pause:
