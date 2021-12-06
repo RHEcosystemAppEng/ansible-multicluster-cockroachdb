@@ -326,6 +326,11 @@
           matchLabels:
             usage: cockroachdb
 
+- name: Pause and wait to create ServiceExport in managed clusters
+  pause:
+    seconds: 180
+  when: cloud == "gcp"
+
 - name: Create the serviceExport for cockroachdb service
   kubernetes.core.k8s:
     wait: yes
@@ -383,16 +388,21 @@
 - name: Pause and wait for pods from StatefulSet to become ready
   pause:
     seconds: 480
+  when: cloud == "gcp"
+
+# - name: Run cockroach init to complete the node startup process and have them join together as a cluster
+#   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+#   register: cockroachdb_join
+#   ignore_errors: true
+#   loop: "{{ clusters }}"
+#   loop_control:
+#     index_var: my_idx
+#   when: 
+#     - my_idx == 0
+#     - cloud == "aws"
+#     - cockroachdb_ready_status[0] != ""
+
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-  register: cockroachdb_join
-  ignore_errors: true
-  loop: "{{ clusters }}"
-  loop_control:
-    index_var: my_idx
-  when: 
-    - my_idx == 0
-    - cockroachdb_ready_status[0] != ""
-
-
+  when: cloud == "gcp"
