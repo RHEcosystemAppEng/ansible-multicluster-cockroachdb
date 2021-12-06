@@ -121,6 +121,7 @@
   loop_control: 
     pause: 5
 
+
 - name: Wait till import klusterlet is applied
   kubernetes.core.k8s_info:
     kind: Klusterlet 
