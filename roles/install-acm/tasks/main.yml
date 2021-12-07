@@ -61,7 +61,7 @@
       spec:
         sourceNamespace: openshift-marketplace
         source: redhat-operators
-        channel: release-2.3
+        channel: "release-{{ acm_version }}"
         installPlanApproval: Automatic
         name: advanced-cluster-management
 

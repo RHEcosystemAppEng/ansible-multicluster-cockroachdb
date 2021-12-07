@@ -6,6 +6,9 @@ clusters:
 # Choose cloud to install on gcp or aws
 cloud: gcp
 
+# ACM Version
+acm_version: 2.4
+
 # GCP User
 # discovered by $> gcloud info | grep Account
 gcp_user: cwylie@redhat.com
