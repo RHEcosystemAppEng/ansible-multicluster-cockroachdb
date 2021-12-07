@@ -78,6 +78,10 @@
       type: Available
       status: True
 
+- name: Pause before creating MultiClusterHub
+  pause:
+    seconds: 40
+
 - name: Create MultiClusterHub custom resource
   kubernetes.core.k8s:
     wait: yes

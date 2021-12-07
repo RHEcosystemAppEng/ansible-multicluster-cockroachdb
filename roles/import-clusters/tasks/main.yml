@@ -77,7 +77,7 @@
 
 - name: Pause for import and klusterlet secrets to be created
   pause:
-    seconds: 10
+    seconds: 30
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
