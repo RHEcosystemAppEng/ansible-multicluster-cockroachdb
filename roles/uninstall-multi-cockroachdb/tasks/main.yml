@@ -224,7 +224,7 @@
         kind: User
         name: "{{ gcp_user }}"
   loop: "{{ clusters }}"
-  when: cloud == "gcp"
+  when: item.cloud == "gcp"
 
 - name: git push
   include_role:

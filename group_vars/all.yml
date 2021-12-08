@@ -1,13 +1,14 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: ansible-managed-1, contexts: ansible-managed-1}
-  - {name: ansible-managed-2, contexts: ansible-managed-2}
+  - {name: gcp-us-central-1, contexts: gcp-us-central-1, cloud: gcp}
+  # - {name: aws-us-east-2, contexts: aws-us-east-2, cloud: aws}
+  - {name: gcp-us-west-1, contexts: gcp-us-west-1, cloud: gcp}
 
 # Choose cloud to install on gcp or aws
 cloud: gcp
 
 # ACM Version
-acm_version: 2.4
+acm_version: 2.3
 
 # GCP User
 # discovered by $> gcloud info | grep Account
@@ -39,8 +40,8 @@ cockroach: /usr/local/bin/cockroach
 # Application repo for cockroachdb
 app_repo: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
 
+### # Git variables ###
 
-# Git variables
 git_url: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
 git_branch: 'main'
 git_msg: 'update files with ansible'
@@ -53,3 +54,20 @@ git_email: cm891237@gmail.com
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
 # export GIT_SSH_COMMAND="ssh -i /Users/cmwylie19/.ssh/gh_cm891237"
+
+### Resources ###
+
+pod:
+  limits:
+    cpu:
+    memory:
+  requests:
+    cpu:
+    memory:
+pv:
+  capacity:
+    storage:
+pvc:
+  resources:
+    requests: 
+       storage: 

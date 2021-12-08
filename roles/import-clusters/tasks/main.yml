@@ -77,7 +77,7 @@
 
 - name: Pause for import and klusterlet secrets to be created
   pause:
-    seconds: 30
+    seconds: 60
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
@@ -113,7 +113,7 @@
 
 - name: Pause for klusterlet CRD to be created
   pause:
-    seconds: 40
+    seconds: 120
 
 - name: Import managed clusters
   ansible.builtin.command: "{{ kubectl }} apply -f {{ role_path }}/files/{{ item.name }}-import.yaml --context {{ item.contexts }}"
