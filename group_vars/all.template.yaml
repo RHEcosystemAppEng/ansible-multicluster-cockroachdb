@@ -19,7 +19,7 @@ hub_context: hub
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
-ocp_pull_secret_path: /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/pull-secret.json
+ocp_pull_secret_path: /path/to/pull-secret.json
 
 # ManagedClusterSet Name
 clusterset_name: cockroachdb-clusterset
@@ -31,22 +31,22 @@ kubectl: /usr/local/bin/kubectl
 cockroach: /usr/local/bin/cockroach
 
 # Application repo for cockroachdb
-app_repo: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
+app_repo: https://github.com/<your_github_user>/ansible-multicluster-cockroachdb.git
 
 ### Git variables ###
 
-git_url: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
+git_url: https://github.com/<your_github_user>/ansible-multicluster-cockroachdb.git
 git_branch: 'main'
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: cm891237
-git_email: cm891237@gmail.com
+git_username: your_github_user
+git_email: ansible_git@ansible.com
 
 ### Git credentials ###
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# export GIT_SSH_COMMAND="ssh -i /Users/cmwylie19/.ssh/gh_cm891237"
+# export GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
 
 ### Resources ###
 

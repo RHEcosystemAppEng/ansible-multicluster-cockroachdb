@@ -1,37 +1,15 @@
 ---
-- name: Create secret for GCP credentials
-  kubernetes.core.k8s:
-    wait: yes
-    state: present
-    context: "{{ hub_context }}"
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-          name: "{{ item.name }}-gcp-creds"
-          namespace: "{{ item.name }}"
-      type: Opaque
-      data:
-          osServiceAccount.json: "{{ lookup('env', 'OCP_SERVICE_ACCOUNT') | b64encode }}"
-  loop: "{{ clusters }}"
-  when: item.cloud == "gcp"
-
-- name: Create submariner addon GCP
-  kubernetes.core.k8s:
-    wait: yes
-    state: present
-    context: "{{ hub_context }}"
-    definition:
-      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
-      kind: SubmarinerConfig
-      metadata:
-          name: submariner
-          namespace: "{{ item.name }}"
-      spec:
-          credentialsSecret:
-            name: "{{ item.name }}-gcp-creds"
-  loop: "{{ clusters }}"
-  when: item.cloud == "gcp"
+# Create submariner addon for AWS first because it takes longer for the submariner-gateway pod to come up
+# If submariner-gateway pod comes up too late the gateways will think that there is a problem with AWS cluster active connections and never become healthy
+# eg. Connection "submariner-cable-aws-us-east-2-10-1-112-157-1-1" not found in active connections obtained from whack: map[], map[]
+# In the event that this occurs you can easily work around:
+# ansible-playbook uninstall-multi-cockroachdb.yml
+# ansible-playbook remove-submar-addon.yml
+# ansible-playbook remove-clusterset.yml
+# ansible-playbook create-clusterset.yml
+# ansible-playbook install-submar-addon.yml
+# ansible-playbook install-multi-cockroachdb.yml
+# This can be run on one line ^ ansible-playbook a.yaml; ansible-playbook b.yaml; ....
 
 - name: Create secret for AWS credentials
   kubernetes.core.k8s:
@@ -67,6 +45,40 @@
             name: "{{ item.name }}-aws-creds"
   loop: "{{ clusters }}"
   when: item.cloud == "aws"
+
+- name: Create secret for GCP credentials
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ hub_context }}"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+          name: "{{ item.name }}-gcp-creds"
+          namespace: "{{ item.name }}"
+      type: Opaque
+      data:
+          osServiceAccount.json: "{{ lookup('env', 'OCP_SERVICE_ACCOUNT') | b64encode }}"
+  loop: "{{ clusters }}"
+  when: item.cloud == "gcp"
+
+- name: Create submariner addon GCP
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ hub_context }}"
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec:
+          credentialsSecret:
+            name: "{{ item.name }}-gcp-creds"
+  loop: "{{ clusters }}"
+  when: item.cloud == "gcp"
 
 - name: Deploy Submariner on the managed clusters
   kubernetes.core.k8s:

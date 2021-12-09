@@ -1,5 +1,33 @@
 ---
-- name: Create ClusterRoleBindings for GCP
+- name: Create cockroachdb namespaces for managed clusters
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Create Service Account for cockroachdb sts
+  kubernetes.core.k8s:
+    state: present
+    wait: yes
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        creationTimestamp: null
+        name: cockroachdb
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Create ClusterRoleBindings for cockroach service account
   kubernetes.core.k8s:
     wait: yes
     state: present
@@ -9,17 +37,16 @@
       kind: ClusterRoleBinding
       metadata:
         creationTimestamp: null
-        name: "{{ gcp_user }}-cluster-admin-binding"
+        name: "cockroach-sa-cluster-admin-binding"
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: ClusterRole
         name: cluster-admin
       subjects:
       - apiGroup: rbac.authorization.k8s.io
-        kind: User
-        name: "{{ gcp_user }}"
+        kind: Group
+        name: system:serviceaccounts:cockroachdb
   loop: "{{ clusters }}"
-  when: item.cloud == "gcp"
 
 - name: Wait till submariner add on install completes 
   kubernetes.core.k8s_info:
@@ -110,35 +137,6 @@
   include_role:
     name: ansible-git
     tasks_from: push
-
-- name: Create cockroachdb namespaces for managed clusters
-  kubernetes.core.k8s:
-    wait: yes
-    state: present
-    context: "{{ item.contexts }}"
-    definition:
-      apiVersion: project.openshift.io/v1
-      description: cockroachdb
-      displayName: cockroachdb
-      kind: Project
-      metadata:
-          name: cockroachdb
-  loop: "{{ clusters }}"
-
-- name: Create Service Account for cockroachdb name on managed in GCP
-  kubernetes.core.k8s:
-    state: present
-    wait: yes
-    context: "{{ item.contexts }}"
-    definition:
-      apiVersion: v1
-      kind: ServiceAccount
-      metadata:
-        creationTimestamp: null
-        name: cockroachdb
-        namespace: cockroachdb
-  when: item.cloud == "gcp"
-  loop: "{{ clusters }}"
   
 - name: Create ClusterRoleBinding for cockroachdb Service Account on managed in GCP
   kubernetes.core.k8s:
@@ -326,7 +324,7 @@
           matchLabels:
             usage: cockroachdb
 
-- name: Pause and wait to create ServiceExport in managed clusters
+- name: Pause and wait to create ServiceExport in managed clusters and for Submariner Gateways to running
   pause:
     seconds: 180
 
@@ -379,24 +377,14 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
+- name: Recycle Submariner Gateway Pods
+  ansible.builtin.shell: "{{ kubectl }} delete pods -l app=submariner-gateway -n submariner-operator --context {{ item.name }}"
+  loop: "{{ clusters }}"
 
 - name: Pause and wait for pods from StatefulSet to become ready
   pause:
-    seconds: 480
+    seconds: 600
 
-# - name: Run cockroach init to complete the node startup process and have them join together as a cluster
-#   ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-#   register: cockroachdb_join
-#   ignore_errors: true
-#   loop: "{{ clusters }}"
-#   loop_control:
-#     index_var: my_idx
-#   when: 
-#     - my_idx == 0
-#     - cloud == "aws"
-#     - cockroachdb_ready_status[0] != ""
-
-# Take a look with Marcus
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.shell: "{{ kubectl }} exec --context {{ clusters[0].contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
   loop: "{{ clusters }}"
