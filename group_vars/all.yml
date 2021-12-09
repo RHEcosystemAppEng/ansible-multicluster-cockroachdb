@@ -42,6 +42,11 @@ git_remove_local: false
 git_username: cm891237
 git_email: cm891237@gmail.com
 
+### Image Registry credentials ###
+ir_username: "11009103|ir-sa"
+# export IR_PASSWORD="$(cat ~/.ir_password)"
+
+
 ### Git credentials ###
 
 # Git ssh environemnt variable need to be set 

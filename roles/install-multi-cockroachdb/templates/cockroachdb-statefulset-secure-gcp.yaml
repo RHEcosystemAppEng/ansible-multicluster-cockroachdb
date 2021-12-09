@@ -159,9 +159,11 @@ spec:
                   values:
                   - cockroachdb
               topologyKey: kubernetes.io/hostname
+      imagePullSecrets: 
+      - name: ir-secret
       containers:
       - name: cockroachdb
-        image: cockroachdb/cockroach:v21.2.2
+        image: registry.connect.redhat.com/cockroachdb/cockroach:v21.2.2
         imagePullPolicy: IfNotPresent
         resources:
           requests:

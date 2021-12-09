@@ -175,9 +175,11 @@ spec:
         volumeMounts:
         - mountPath: /etc/cockroach-env
           name: cockroach-env
+      imagePullSecrets: 
+      - name: ir-secret
       containers:
       - name: cockroachdb
-        image: cockroachdb/cockroach:v21.2.2
+        image: registry.connect.redhat.com/cockroachdb/cockroach:v21.2.2
         imagePullPolicy: IfNotPresent
         # TODO: Change these to appropriate values for the hardware that you're running. You can see
         # the resources that can be allocated on each of your Kubernetes nodes by running:

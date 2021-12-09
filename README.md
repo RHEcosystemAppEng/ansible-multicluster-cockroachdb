@@ -49,6 +49,7 @@ Add environment variables
 | AWS_SECRET_KEY | The AWS secret key for the AWS clusters you are importing
 | GIT_SSH_COMMAND | Git push will use this command instead of ssh when connecting to a remote system
 | OCP_SERVICE_ACCOUNT | [GCP Service Account](https://cloud.google.com/iam/docs/service-accounts)
+| IR_PASSWORD | image registry password
 
 
 Modify variables in **group_vars/all.yml**
@@ -69,6 +70,7 @@ Modify variables in **group_vars/all.yml**
 | git_username | Defaults to ansible_git your username for github
 | git_email | Defaults to ansible_git@ansible.com the email associated with your github account
 | Resources | Resources for the `pod.spec.containers.resources` and `volumeClaimTemplate.spec.resources.requests.storage`
+| ir_username | username for image [registry](https://access.redhat.com/terms-based-registry/)
 
 ## Usage
 | Description | Command |
