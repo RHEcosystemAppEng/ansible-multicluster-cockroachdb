@@ -14,10 +14,10 @@ The automation will do the following:
 ## Prerequistes
 - A minimum of 3 kubernetes clusters
   
-  - **Currently only supported on AWS**
-  - 1 cluster must meet the [requirements](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.3/html/install/installing#sizing-your-cluster "ACM install") needed for Advanced Cluster Management
+  - **Currently only supported on AWS/GCP**
+  - 1 cluster must meet the [requirements](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4/html/install/installing#sizing-your-cluster "ACM install") needed for Advanced Cluster Management
 
-    - Running openshift =< 4.7.13
+    - Running openshift = 4.9.9
   - 2 or more clusters will be imported as managed clusters and connected via the submariner-addon
   - Managed clusters Pod and Service Classless Inter-Domain Routing (CIDR) between the clusters that do not overlap
   - Your kubeconfig contexts must have the necessary permissions sets to create the kuberenetes objects needed for the automation

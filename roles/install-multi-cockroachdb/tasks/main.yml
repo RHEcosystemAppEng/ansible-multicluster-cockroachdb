@@ -13,6 +13,10 @@
           name: cockroachdb
   loop: "{{ clusters }}"
 
+- name: Pause and wait for namespace to be created before creating secrets
+  pause:
+    seconds: 60
+
 - name: Create Image Registry Secret on the managed clusters
   ansible.builtin.shell: "{{ kubectl }} create secret docker-registry ir-secret --docker-username='{{ ir_username }}' --docker-password={{ lookup('env', 'IR_PASSWORD') }} --docker-server=registry.redhat.io --namespace=cockroachdb --context {{ item.name }}"
   loop: "{{ clusters }}"
