@@ -1,4 +1,4 @@
-# Automated cockraochdb multicluster deployment
+# Automated cockroachdb multicluster deployment
 **Currently under construction**
 
 ## Synopsis
@@ -14,10 +14,10 @@ The automation will do the following:
 ## Prerequistes
 - A minimum of 3 kubernetes clusters
   
-  - **Currently only supported on AWS**
-  - 1 cluster must meet the [requirements](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.3/html/install/installing#sizing-your-cluster "ACM install") needed for Advanced Cluster Management
+  - **Currently only supported on AWS/GCP**
+  - 1 cluster must meet the [requirements](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4/html/install/installing#sizing-your-cluster "ACM install") needed for Advanced Cluster Management
 
-    - Running openshift =< 4.7.13
+    - Running openshift = 4.9.9
   - 2 or more clusters will be imported as managed clusters and connected via the submariner-addon
   - Managed clusters Pod and Service Classless Inter-Domain Routing (CIDR) between the clusters that do not overlap
   - Your kubeconfig contexts must have the necessary permissions sets to create the kuberenetes objects needed for the automation
@@ -48,13 +48,15 @@ Add environment variables
 | AWS_ACCESS_KEY | The AWS access key id for the AWS clusters you are importing
 | AWS_SECRET_KEY | The AWS secret key for the AWS clusters you are importing
 | GIT_SSH_COMMAND | Git push will use this command instead of ssh when connecting to a remote system
+| OCP_SERVICE_ACCOUNT | [GCP Service Account](https://cloud.google.com/iam/docs/service-accounts)
+| IR_PASSWORD | image registry password
 
 
 Modify variables in **group_vars/all.yml**
 
 | Variable | Description
 | --- | --- |
-| clusters | A list that includes: name of the cluster you want, and the name of the context associated with the cluster in your kubeconfig
+| clusters | A list that includes: name of the cluster you want, and the name of the context associated with the cluster in your kubeconfig, and the cloud that the cluster is running in
 | hub_context | The context name for your hub cluster
 | ocp_pull_secret_path | The path to your OpenShift container platform [pull secret](cloud.redhat.com/openshift/install/pull-secret)
 | clusterset_name | Default cockroackdb-clusterset the name of the clusterset you want
@@ -67,6 +69,8 @@ Modify variables in **group_vars/all.yml**
 | git_remove_local | Defaults to false
 | git_username | Defaults to ansible_git your username for github
 | git_email | Defaults to ansible_git@ansible.com the email associated with your github account
+| Resources | Resources for the `pod.spec.containers.resources` and `volumeClaimTemplate.spec.resources.requests.storage`
+| ir_username | username for image [registry](https://access.redhat.com/terms-based-registry/)
 
 ## Usage
 | Description | Command |

@@ -1,0 +1,7 @@
+---
+- name: Import existing clusters in ACM
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - git-clean

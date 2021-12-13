@@ -61,7 +61,7 @@
       spec:
         sourceNamespace: openshift-marketplace
         source: redhat-operators
-        channel: release-2.3
+        channel: "release-{{ acm_version }}"
         installPlanApproval: Automatic
         name: advanced-cluster-management
 
@@ -77,6 +77,10 @@
     wait_condition:
       type: Available
       status: True
+
+- name: Pause before creating MultiClusterHub
+  pause:
+    seconds: 40
 
 - name: Create MultiClusterHub custom resource
   kubernetes.core.k8s:

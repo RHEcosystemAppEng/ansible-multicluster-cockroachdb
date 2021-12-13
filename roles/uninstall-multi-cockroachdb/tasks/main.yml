@@ -203,3 +203,29 @@
   ansible.builtin.file:
     path: "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/my-safe-directory/"
     state: absent
+
+- name: Remove ClusterRoleBindings for managed clusters
+  kubernetes.core.k8s:
+    wait: yes
+    state: absent
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        creationTimestamp: null
+        name: "cockroach-sa-cluster-admin-binding"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: system:serviceaccounts:cockroachdb
+  loop: "{{ clusters }}"
+
+- name: git push
+  include_role:
+    name: git-clean
+    tasks_from: main
