@@ -187,11 +187,11 @@ spec:
         # Note that requests and limits should have identical values.
         resources:
           requests:
-            cpu: "{{ resources.pod.requests.cpu }}"
-            memory: "{{ resources.pod.requests.memory }}"
+            cpu: "2"
+            memory: "5Gi"
           limits:
-            cpu: "{{ resources.pod.limits.cpu }}"
-            memory: "{{ resources.pod.limits.memory }}"
+            cpu: "2"
+            memory: "5Gi"
         ports:
         - containerPort: 26257
           name: grpc
@@ -245,9 +245,9 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
+            --advertise-host $(hostname).aws-us-east-2.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
-            --join {{ format_join_command }}
+            --join cockroachdb-0.aws-us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.aws-us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.aws-us-east-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-us-east-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-us-east-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-us-east-1.cockroachdb.cockroachdb.svc.clusterset.local
             --locality=region=cockroachdb,az=$(cat /etc/cockroach-env/zone),dns=$(hostname -f)
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
@@ -275,4 +275,4 @@ spec:
         - "ReadWriteOnce"
       resources:
         requests:
-          storage: "{{ resources.volumeClaimTemplates.resources.requests.storage }}"
+          storage: "100Gi"

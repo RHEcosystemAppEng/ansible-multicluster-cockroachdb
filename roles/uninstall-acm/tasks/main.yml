@@ -7,7 +7,7 @@
 - name: Warn user that command will take a long time to uninstall
   ansible.builtin.debug:
     msg:
-    - "Deletion of MultiClusterHub could take up to 25 minutes"
+    - "Deletion of MultiClusterHub could take up to 10 minutes"
 
 - name: Delete MultiClusterHub custom resource
   kubernetes.core.k8s:

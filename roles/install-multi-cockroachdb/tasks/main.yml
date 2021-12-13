@@ -1,4 +1,61 @@
 ---
+- name: Create cockroachdb namespaces for managed clusters
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: project.openshift.io/v1
+      description: cockroachdb
+      displayName: cockroachdb
+      kind: Project
+      metadata:
+          name: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Pause and wait for namespace to be created before creating secrets
+  pause:
+    seconds: 60
+
+- name: Create Image Registry Secret on the managed clusters
+  ansible.builtin.shell: "{{ kubectl }} create secret docker-registry ir-secret --docker-username='{{ ir_username }}' --docker-password={{ lookup('env', 'IR_PASSWORD') }} --docker-server=registry.redhat.io --namespace=cockroachdb --context {{ item.name }}"
+  loop: "{{ clusters }}"
+
+
+- name: Create Service Account for cockroachdb sts
+  kubernetes.core.k8s:
+    state: present
+    wait: yes
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        creationTimestamp: null
+        name: cockroachdb
+        namespace: cockroachdb
+  loop: "{{ clusters }}"
+
+- name: Create ClusterRoleBindings for cockroach service account
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ item.contexts }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        creationTimestamp: null
+        name: "cockroach-sa-cluster-admin-binding"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: system:serviceaccounts:cockroachdb
+  loop: "{{ clusters }}"
 
 - name: Wait till submariner add on install completes 
   kubernetes.core.k8s_info:
@@ -33,7 +90,7 @@
   ansible.builtin.set_fact:
     format_join_command: "{{ join_command | join (',') }}"
 
-- name: Dispalying formatted join command 
+- name: Displaying formatted join command 
   ansible.builtin.debug:
     msg: "{{ format_join_command }}"
 
@@ -67,31 +124,48 @@
   loop_control:
     index_var: my_idx
 
-- name: Template a file to /etc/file.conf
+- name: Template a file to /etc/file.conf AWS
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yaml"
     dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
   loop: "{{ clusters }}"
   loop_control:
     index_var: my_idx
+  when: item.cloud == "aws"
+
+- name: Template a file to /etc/file.conf GCP
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yaml"
+    dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: item.cloud == "gcp"
 
 - name: git push
   include_role:
     name: ansible-git
     tasks_from: push
-
-- name: Create cockroachdb namespaces for managed clusters
+  
+- name: Create ClusterRoleBinding for cockroachdb Service Account on managed in GCP
   kubernetes.core.k8s:
     wait: yes
     state: present
     context: "{{ item.contexts }}"
     definition:
-      apiVersion: project.openshift.io/v1
-      description: cockroachdb
-      displayName: cockroachdb
-      kind: Project
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
       metadata:
-          name: cockroachdb
+        name: system:openshift:scc:anyuid
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: system:openshift:scc:anyuid
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: system:serviceaccounts:cockroachdb
+  when: item.cloud == "gcp"
   loop: "{{ clusters }}"
 
 - name: Create cockroachdb namespaces for hub channel
@@ -259,6 +333,10 @@
           matchLabels:
             usage: cockroachdb
 
+- name: Pause and wait to create ServiceExport in managed clusters and for Submariner Gateways to running
+  pause:
+    seconds: 180
+
 - name: Create the serviceExport for cockroachdb service
   kubernetes.core.k8s:
     wait: yes
@@ -308,13 +386,19 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
-- name: Run cockroach init to complete the node startup process and have them join together as a cluster
-  ansible.builtin.command: "kubectl exec --context {{ item.contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
-  register: cockroachdb_join
-  ignore_errors: true
+- name: Recycle Submariner Gateway Pods
+  ansible.builtin.shell: "{{ kubectl }} delete pods -l app=submariner-gateway -n submariner-operator --context {{ item.name }}"
   loop: "{{ clusters }}"
+
+- name: Pause and wait for pods from StatefulSet to become ready
+  pause:
+    seconds: 600
+
+- name: Run cockroach init to complete the node startup process and have them join together as a cluster
+  ansible.builtin.shell: "{{ kubectl }} exec --context {{ clusters[0].contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
+  loop: "{{ clusters }}"
+  ignore_errors: yes
   loop_control:
     index_var: my_idx
   when: 
     - my_idx == 0
-    - cockroachdb_ready_status[0] != ""

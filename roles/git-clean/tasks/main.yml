@@ -1,0 +1,68 @@
+---
+
+# Add change path to playbook_dir
+- name: git add removed resources folder
+  ignore_errors: yes # incase the user has already deleted, or run the deletion script twice
+  ansible.builtin.shell: "git rm -r --cached {{ playbook_dir }}/resources"
+  args:
+   chdir: "{{ playbook_dir }}"
+
+- name: git status
+  ansible.builtin.shell: git status
+  register: git_add_status
+  args:
+   chdir: "{{ playbook_dir }}"
+
+- name: debug git_add_status
+  ansible.builtin.debug:
+    msg: "{{git_add_status}}"
+
+- name: Check statefulsets have been added to staged
+  ignore_errors: yes
+  set_fact: 
+    checkgit: "{{ git_add_status.stdout_lines | regex_search('deleted') }}"
+
+- name: debug checkgit
+  ansible.builtin.debug:
+    msg: "{{checkgit}}"
+
+- name: Warning message
+  debug:
+    msg: No statefulset changes have been staged in git skipping commit and push
+  when: checkgit == ""
+
+- name: git username
+  ansible.builtin.shell: git config user.name "{{ git_username }}"
+  args:
+   chdir: "{{ playbook_dir }}"
+  when: 
+    - git_username is defined
+    - checkgit != ""
+
+- name: git email
+  ansible.builtin.shell: git config user.email "{{ git_email }}"
+  args:
+   chdir: "{{ playbook_dir }}"
+  when: 
+    - git_email is defined
+    - when: checkgit != ""
+
+- name: git commit
+  ansible.builtin.shell: git commit -m "uninstall - rm resources folder"
+  args:
+   chdir: "{{ playbook_dir }}"
+  ignore_errors: true
+  when: checkgit != ""
+
+- name: git push
+  ansible.builtin.shell: git push --force
+  args:
+   chdir: "{{ playbook_dir }}"
+  when: checkgit != ""
+
+- name: git status
+  ansible.builtin.shell: git status
+  args:
+   chdir: "{{ playbook_dir }}"
+  register: git_add_status
+  when: checkgit != ""
