@@ -1,8 +1,8 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: aws-us-east-2, contexts: aws-us-east-2, cloud: aws}
-  - {name: gcp-us-central-1, contexts: gcp-us-central-1, cloud: gcp}
-  - {name: gcp-us-east-1, contexts: gcp-us-east-1, cloud: gcp}
+  - {name: "", contexts: "", cloud: ""}
+  - {name: "", contexts: "", cloud: ""}
+  - {name: "", contexts: "", cloud: ""}
 
 # ACM Version
 acm_version: 2.4
@@ -15,35 +15,35 @@ acm_version: 2.4
 # ex. export OCP_SERVICE_ACCOUNT=$(cat ~/.gcp/osServiceAccount.json)
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: hub
+hub_context: 
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
-ocp_pull_secret_path: /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/pull-secret.json
+ocp_pull_secret_path: 
 
 # ManagedClusterSet Name
-clusterset_name: cockroachdb-clusterset
+clusterset_name: 
 
 # kubectl path
-kubectl: /usr/local/bin/kubectl
+kubectl: 
 
 # Cockroachdb cli path 
-cockroach: /usr/local/bin/cockroach
+cockroach: 
 
 # Application repo for cockroachdb
-app_repo: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
+app_repo: 
 
 ### Git variables ###
 
-git_url: https://github.com/cm891237/ansible-multicluster-cockroachdb.git
-git_branch: 'main'
+git_url: 
+git_branch: 
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: cm891237
-git_email: cm891237@gmail.com
+git_username: ansible_git
+git_email: ansible_git@ansible.com
 
 ### Image Registry credentials ###
-ir_username: "11009103|ir-secret"
+ir_username: 
 # export IR_PASSWORD="$(cat ~/.ir_password)"
 
 
@@ -51,7 +51,7 @@ ir_username: "11009103|ir-secret"
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# export GIT_SSH_COMMAND="ssh -i /Users/cmwylie19/.ssh/gh_cm891237"
+# example: GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
 
 ### Resources ###
 
