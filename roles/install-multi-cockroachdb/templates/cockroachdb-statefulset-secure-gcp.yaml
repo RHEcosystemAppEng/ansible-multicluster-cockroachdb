@@ -167,11 +167,11 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-            cpu: "{{ resources.pod.requests.cpu }}"
-            memory: "{{ resources.pod.requests.memory }}"
+            cpu: "{{ pod_cpu }}"
+            memory: "{{ pod_memory }}"
           limits:
-            cpu: "{{ resources.pod.limits.cpu }}"
-            memory: "{{ resources.pod.limits.memory }}"
+            cpu: "{{ pod_cpu }}"
+            memory: "{{ pod_memory }}"
         ports:
         - containerPort: 26257
           name: grpc
@@ -252,4 +252,4 @@ spec:
         - "ReadWriteOnce"
       resources:
         requests:
-          storage: "{{ resources.volumeClaimTemplates.resources.requests.storage }}"
+          storage: "{{ volumeClaimTemplates_storage }}"

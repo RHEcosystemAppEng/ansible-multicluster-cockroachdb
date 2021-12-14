@@ -56,19 +56,6 @@ ir_username:
 ### Resources ###
 
 # These are the defaults
-
-resources:
-  # Note that requests and limits should have identical values. ( says cockroachdb in statefulset )
-
-  pod:
-    limits:
-      cpu: "2"
-      memory: "5Gi"
-    requests:
-      cpu: "2"
-      memory: "5Gi"
-      
-  volumeClaimTemplates:
-    resources:
-      requests: 
-        storage: 100Gi
+pod_cpu: "2"
+pod_memory: "5Gi"
+volumeClaimTemplates_storage: 100Gi
