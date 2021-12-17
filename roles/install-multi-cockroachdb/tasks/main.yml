@@ -5,6 +5,16 @@
     name: install-multi-cockroachdb
     tasks_from: pre_validation
 
+- name: Get Cluster Regions
+  ansible.builtin.shell: "{{ kubectl }} cluster-info dump --context {{ item.contexts }} | grep topology.kubernetes.io/region | awk 'FNR == 1 { print $2}' | tr -d '\",' "
+  loop: "{{ clusters }}"
+  register: region
+
+- name: Get Cluster AZs
+  ansible.builtin.shell: "{{ kubectl }} cluster-info dump --context {{ item.contexts }} | grep topology.kubernetes.io/zone | awk 'FNR == 1 { print $2}' | tr -d '\",'"
+  loop: "{{ clusters }}"
+  register: zone
+  
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
     wait: yes
@@ -151,19 +161,25 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yaml"
     dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
-  loop: "{{ clusters }}"
+  with_together:
+  - "{{ clusters }}"
+  - "{{ zone.results }}"
+  - "{{ region.results }}"
   loop_control:
     index_var: my_idx
-  when: item.cloud == "aws"
+  when: item.0.cloud == "aws"
 
 - name: Template a file to /etc/file.conf GCP
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yaml"
     dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
-  loop: "{{ clusters }}"
+  with_together:
+  - "{{ clusters }}"
+  - "{{ zone.results }}"
+  - "{{ region.results }}"
   loop_control:
     index_var: my_idx
-  when: item.cloud == "gcp"
+  when: item.0.cloud == "gcp"
 
 - name: git push
   include_role:

@@ -150,6 +150,11 @@
     "{{ kubectl }}" get clusterrolebinding --context "{{ item.contexts }}" | grep klusterlet | awk '{print $1}' | xargs "{{ kubectl }}" delete clusterrolebinding --context "{{ item.contexts }}" --wait 
   loop: "{{ clusters }}"
 
+- name: Patch Klustlet CRD
+  shell: |
+    "{{ kubectl }}" patch crd klusterlets.operator.open-cluster-management.io -p '{"metadata":{"finalizers":null}}' 
+
+
 - name: Delete Klusterlet CRDs
   ignore_errors: yes
   shell: |
