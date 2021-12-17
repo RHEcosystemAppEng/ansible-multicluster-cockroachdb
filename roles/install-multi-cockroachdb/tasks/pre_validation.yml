@@ -1,0 +1,8 @@
+---
+- name: Validate number of cockroachdb clusters
+  fail: 
+    msg: 2 cluster setup is not recommended for multicluster deployment. Please add another cluster or reduce to 1 cluster
+  loop: "{{ clusters }}"
+  loop_control:
+    extended: yes
+  failed_when: ansible_loop.length == 2

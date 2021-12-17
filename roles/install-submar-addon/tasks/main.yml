@@ -11,6 +11,11 @@
 # ansible-playbook install-multi-cockroachdb.yml
 # This can be run on one line ^ ansible-playbook a.yaml; ansible-playbook b.yaml; ....
 
+- name: Check amount of clusters
+  include_role:
+    name: install-multi-cockroachdb
+    tasks_from: pre_validation
+
 - name: Create secret for AWS credentials
   kubernetes.core.k8s:
     wait: yes
