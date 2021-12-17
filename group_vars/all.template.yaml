@@ -1,6 +1,6 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: gcp-us-central-1, contexts: gcp-us-central-1, cloud: gcp}
+  - {name: gcp-us-central-1, contexts: gcp-us-central-1, cloud: gcp, region: us-central-1, az: us-central1-a}
   - {name: aws-us-east-2, contexts: aws-us-east-2, cloud: aws, region: us-east-2, az: us-east-2a}
   - {name: gcp-us-west-1, contexts: gcp-us-west-1, cloud: gcp, region: us-west-1, az: us-west1-a}
 

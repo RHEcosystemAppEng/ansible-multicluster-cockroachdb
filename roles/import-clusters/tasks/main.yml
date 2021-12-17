@@ -1,5 +1,10 @@
 ---
 
+- name: Check amount of clusters
+  include_role:
+    name: install-multi-cockroachdb
+    tasks_from: pre_validation
+
 - name: Wait till MultiClusterHub is created
   kubernetes.core.k8s_info:
     kind: MultiClusterHub 

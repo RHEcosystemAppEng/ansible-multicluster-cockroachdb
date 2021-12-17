@@ -1,4 +1,10 @@
 ---
+
+- name: Check amount of clusters
+  include_role:
+    name: install-multi-cockroachdb
+    tasks_from: pre_validation
+
 - name: Get Cluster Regions
   ansible.builtin.shell: "{{ kubectl }} cluster-info dump --context {{ item.contexts }} | grep topology.kubernetes.io/region | awk 'FNR == 1 { print $2}' | tr -d '\",' "
   loop: "{{ clusters }}"
