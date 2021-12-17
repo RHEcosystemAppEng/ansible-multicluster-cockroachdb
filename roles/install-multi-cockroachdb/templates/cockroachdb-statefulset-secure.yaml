@@ -245,10 +245,10 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
+            --advertise-host $(hostname).{{ item.0.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
             --join {{ format_join_command }}
-            --locality=region={{ item.region }},zone={{ item.az }},dns=$(hostname -f),cloud={{ item.cloud }}
+            --locality=region={{ item.2.stdout }},zone={{ item.1.stdout }},dns=$(hostname -f),cloud={{ item.0.cloud }}
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
       # No pre-stop hook is required, a SIGTERM plus some time is all that's

@@ -1,0 +1,9 @@
+---
+- name: region info
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - get-region
+
+# https://coderedirect.com/questions/447770/how-to-combine-two-lists-together
