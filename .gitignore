@@ -13,4 +13,6 @@
 
 .ssh
 
+oc_completion.sh
+
 pull-secret.json
