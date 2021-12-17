@@ -163,7 +163,7 @@ spec:
       - name: ir-secret
       containers:
       - name: cockroachdb
-        image: registry.connect.redhat.com/cockroachdb/cockroach:v21.2.2
+        image: "registry.connect.redhat.com/cockroachdb/cockroach:{{ cockroachdb_version }}"
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -227,7 +227,7 @@ spec:
             --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
             --join {{ format_join_command }}
-            --locality=region=cockroachdb,dns=$(hostname -f)
+            --locality=region={{ item.region }},zone={{ item.az }},dns=$(hostname -f),cloud={{ item.cloud }}
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
       # No pre-stop hook is required, a SIGTERM plus some time is all that's

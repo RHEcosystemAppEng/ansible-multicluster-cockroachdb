@@ -1,11 +1,14 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: "", contexts: "", cloud: ""}
-  - {name: "", contexts: "", cloud: ""}
-  - {name: "", contexts: "", cloud: ""}
+  - {name: "", contexts: "", cloud: "", region: "", az: ""}
+  - {name: "", contexts: "", cloud: "", region: "", az: ""}
+  - {name: "", contexts: "", cloud: "", region: "", az: ""}
 
 # ACM Version
 acm_version: 2.4
+
+# Cockroach Version:
+cockroachdb_version: 
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
