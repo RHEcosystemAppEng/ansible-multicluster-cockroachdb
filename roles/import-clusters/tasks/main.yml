@@ -80,9 +80,16 @@
         version: 2.3.0
   loop: "{{ clusters }}"
 
-- name: Pause for import and klusterlet secrets to be created
-  pause:
-    seconds: 60
+- name: Wait for import and klusterlet secrets to be created
+  kubernetes.core.k8s_info:
+    kind: KlusterletAddonConfig
+    namespace: "{{ item.name }}"
+    wait: yes
+    context: "{{ hub_context }}"
+    wait_sleep: 15
+    wait_timeout: 400
+  register: klusterlet
+  loop: "{{ clusters }}"
 
 - name: Fetch import and klusterlet secrets for managed clusters
   set_fact:
