@@ -29,15 +29,21 @@
           name: cockroachdb
   loop: "{{ clusters }}"
 
-- name: Pause and wait for namespace to be created before creating secrets
-  pause:
-    seconds: 60
-
+- name: Wait for namespace to be created before creating secrets
+  kubernetes.core.k8s_info:
+    api_version: project.openshift.io/v1
+    kind: Project
+    name: cockroachdb
+    wait: yes
+    context:  "{{ item.contexts }}"
+    wait_sleep: 15
+    wait_timeout: 400
+  register: namespace_debug
+  loop: "{{ clusters }}"
 
 - name: Create variable for IR_PASSWORD registry secret 
   set_fact: 
     IR_PASSWORD: "{{ lookup('file', '{{ role_path }}/templates/ir_password.yaml') | from_json }}"
-
 
 - name: Create ir_password secret in each managed cluster
   kubernetes.core.k8s:
