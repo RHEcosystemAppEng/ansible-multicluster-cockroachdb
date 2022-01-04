@@ -15,7 +15,7 @@
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
     wait_timeout: 2500
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
