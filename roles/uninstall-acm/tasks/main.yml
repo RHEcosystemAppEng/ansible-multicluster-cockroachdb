@@ -152,8 +152,8 @@
 
 - name: Patch Klustlet CRD
   shell: |
-    "{{ kubectl }}" patch crd klusterlets.operator.open-cluster-management.io -p '{"metadata":{"finalizers":null}}' 
-
+    "{{ kubectl }}" patch crd klusterlets.operator.open-cluster-management.io -p '{"metadata":{"finalizers":null}}'
+  ignore_errors: yes
 
 - name: Delete Klusterlet CRDs
   ignore_errors: yes
