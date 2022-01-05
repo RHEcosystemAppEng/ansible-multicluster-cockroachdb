@@ -69,11 +69,10 @@
         installPlanApproval: Automatic
         name: advanced-cluster-management
 
-- name: Wait till the multicluster-operators-application is created
+- name: Wait till the multicluster-operators-standalone-subscription is created
   kubernetes.core.k8s_info:
     kind: Deployment 
-    name: multicluster-operators-application
-    namespace: hub
+    name: multicluster-operators-standalone-subscription
     wait: yes
     context: "{{ hub_context }}"
     wait_sleep: 10
@@ -81,10 +80,7 @@
     wait_condition:
       type: Available
       status: True
-
-- name: Pause before creating MultiClusterHub
-  pause:
-    seconds: 40
+  register: operator_ready
 
 - name: Create MultiClusterHub custom resource
   kubernetes.core.k8s:
