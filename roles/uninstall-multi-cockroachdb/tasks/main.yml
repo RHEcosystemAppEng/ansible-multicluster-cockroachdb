@@ -38,7 +38,7 @@
 - name: Delete cockroachdb subscription in ACM
   kubernetes.core.k8s:
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: Subscription
@@ -61,7 +61,7 @@
   kubernetes.core.k8s:
     wait: yes
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: app.k8s.io/v1beta1
       kind: Application
@@ -81,7 +81,7 @@
   kubernetes.core.k8s:
     wait: yes
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: Channel
@@ -95,7 +95,7 @@
 - name: Delete cockroachdb PlacementRule in ACM
   kubernetes.core.k8s:
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: apps.open-cluster-management.io/v1
       kind: PlacementRule
@@ -185,7 +185,7 @@
   kubernetes.core.k8s:
     wait: yes 
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: project.openshift.io/v1
       description: cockroachdb

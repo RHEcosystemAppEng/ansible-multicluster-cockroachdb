@@ -10,7 +10,7 @@
     wait: yes
     wait_sleep: 30 # Check every 30 seconds
     wait_timeout: 1500 # Wait 25 mins max
-    context: hub
+    context: "{{ hub_context }}"
     definition:
       apiVersion: cluster.open-cluster-management.io/v1alpha1
       kind: ManagedClusterSet
@@ -20,7 +20,7 @@
 - name: Remove RBAC ClusterRole
   kubernetes.core.k8s:
     state: absent
-    context: hub
+    context: "{{ hub_context }}"
     wait: yes
     definition:
       apiVersion: rbac.authorization.k8s.io/v1
