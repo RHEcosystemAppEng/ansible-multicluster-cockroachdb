@@ -76,7 +76,7 @@
     wait: yes
     context: "{{ hub_context }}"
     wait_sleep: 10
-    wait_timeout: 400
+    wait_timeout: 300
     wait_condition:
       type: Available
       status: True
