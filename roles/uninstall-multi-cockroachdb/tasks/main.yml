@@ -12,15 +12,17 @@
 - name: Delete directories needed for cockroachdb statefulset
   ignore_errors: yes
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/resources"
+    path: "{{ item }}"
     state: absent
-  
+  loop:
+    - "{{ playbook_dir }}/resources"
+    - "{{ playbook_dir }}/roles/install-multi-cockroachdb/files/cockroach"
+
 - name: Delete .ssh directory
   ignore_errors: yes
   ansible.builtin.file:
     path: "{{ playbook_dir }}/.ssh"
     state: absent
-
 
 - name: Delete the serviceExport for cockroachdb service
   kubernetes.core.k8s:
