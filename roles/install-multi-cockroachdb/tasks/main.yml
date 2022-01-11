@@ -248,6 +248,14 @@
       type: Opaque
   loop: "{{ clusters }}"
 
+- name: Get git_url to format for https protocol for ACM channel creation
+  set_fact: 
+    git_https_format: "{{ git_url | regex_search('git.github.com:(.*)', '\\1') | first }}"
+
+- name: Create app_repo var for channel github https
+  set_fact: 
+    app_repo: "{{ 'https://github.com/' + git_https_format }}"
+
 - name: Create channel for cockroachdb application in ACM
   kubernetes.core.k8s:
     wait: yes
