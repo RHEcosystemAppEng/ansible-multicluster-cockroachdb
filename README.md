@@ -62,7 +62,6 @@ Modify variables in **group_vars/all.yml**
 | clusterset_name | Default cockroackdb-clusterset the name of the clusterset you want
 | kubectl | The path to your kubectl 
 | cockroach | The path to your cockroachdb cli
-| app_repo | Your repo location in https format
 | git_url | Your repo location in ssh format
 | git_branch | Defaults to master
 | git_msg | Defaults to "update files with ansible" is the message sent when automation pushes 
