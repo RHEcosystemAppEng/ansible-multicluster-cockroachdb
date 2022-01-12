@@ -16,6 +16,21 @@
     name: install-multi-cockroachdb
     tasks_from: pre_validation
 
+- name: Create submariner addon on-prem
+  kubernetes.core.k8s:
+    wait: yes
+    state: present
+    context: "{{ hub_context }}"
+    definition:
+      apiVersion: submarineraddon.open-cluster-management.io/v1alpha1
+      kind: SubmarinerConfig
+      metadata:
+          name: submariner
+          namespace: "{{ item.name }}"
+      spec: {}
+  loop: "{{ clusters }}"
+  when: item.cloud == "on-prem"
+
 - name: Create secret for AWS credentials
   kubernetes.core.k8s:
     wait: yes

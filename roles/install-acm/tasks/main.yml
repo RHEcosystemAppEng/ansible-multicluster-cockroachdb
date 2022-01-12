@@ -21,20 +21,22 @@
       metadata:
           name: hub
 
-- name: Create OpenShift Container Platform pull secret
-  kubernetes.core.k8s:
-    wait: yes
-    context: "{{ hub_context }}"
-    namespace: hub
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: ocp-pull-secret
-      data:
-        .dockerconfigjson: "{{ ocp_pull_secret | to_json | b64encode }}"
-      type: kubernetes.io/dockerconfigjson
+- name: Create OpenShift Secret
+  shell: "{{ kubectl }} apply -f /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/secret.yaml"
+# - name: Create OpenShift Container Platform pull secret
+#   kubernetes.core.k8s:
+#     wait: yes
+#     context: "{{ hub_context }}"
+#     namespace: hub
+#     state: present
+#     definition:
+#       apiVersion: v1
+#       kind: Secret
+#       metadata:
+#         name: ocp-pull-secret
+#       data:
+#         .dockerconfigjson: "{{ ocp_pull_secret | to_json | b64encode }}"
+#       type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:

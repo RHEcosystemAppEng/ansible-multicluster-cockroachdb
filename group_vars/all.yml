@@ -1,14 +1,14 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: "", contexts: "", cloud: ""}
-  - {name: "", contexts: "", cloud: ""}
-  - {name: "", contexts: "", cloud: ""}
+  - {name: "gcp-us-west-1", contexts: "gcp-us-west-1", cloud: "gcp"}
+  - {name: "gcp-us-central-1", contexts: "gcp-us-central-1", cloud: "gcp"}
+  - {name: "aws-us-east-2", contexts: "aws-us-east-2", cloud: "aws"}
 
 # ACM Version
 acm_version: 2.4
 
 # Cockroach Version:
-cockroachdb_version: 
+cockroachdb_version: "v21.2.2"
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
@@ -18,32 +18,32 @@ cockroachdb_version:
 # ex. export OCP_SERVICE_ACCOUNT=$(cat ~/.gcp/osServiceAccount.json)
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: 
+hub_context: aws-hub
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
-ocp_pull_secret_path: 
+ocp_pull_secret_path: /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/pull-secret.json
 
 # ManagedClusterSet Name
-clusterset_name: 
+clusterset_name: cockroachdb-clusterset
 
 # kubectl path
-kubectl: 
+kubectl: /usr/local/bin/kubectl
 
 # Cockroachdb cli path 
-cockroach: 
+cockroach: /usr/local/bin/cockroach
 
 # Application repo for cockroachdb
-app_repo: 
+app_repo: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
 
 ### Git variables ###
 
-git_url: 
-git_branch: 
+git_url: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
+git_branch: 'main'
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: ansible_git
-git_email: ansible_git@ansible.com
+git_username: cm891237
+git_email: cm891237@gmail.com
 
 ### Image Registry credentials ###
 ir_username: 
@@ -54,7 +54,7 @@ ir_username:
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# example: GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
+# example: export GIT_SSH_COMMAND="$(cat /Users/cmwylie19/.ssh/gh_cm891237)"
 
 ### Resources ###
 
