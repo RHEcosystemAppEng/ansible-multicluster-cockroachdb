@@ -335,7 +335,7 @@
 
 - name: Pause and wait to create ServiceExport in managed clusters and for Submariner Gateways to running
   pause:
-    seconds: 180
+    seconds: 300
 
 - name: Create the serviceExport for cockroachdb service
   kubernetes.core.k8s:
@@ -367,7 +367,39 @@
     index_var: my_idx
   when: my_idx == 0
 
-- name: get status
+- name: get status submariner
+  kubernetes.core.k8s_info:
+    api_version: addon.open-cluster-management.io/v1alpha1
+    kind: ManagedClusterAddOn 
+    name: submariner
+    context: "{{ hub_context }}"
+    namespace: "{{ item.name }}"
+  loop: "{{ clusters }}"
+  register: submariner_status
+
+- name: get status output
+  set_fact:
+    submariner_ready_status: "{{ item | json_query('resources[].status.conditions[].status') | regex_search('False') }}"
+  loop: "{{ submariner_status.results }}"
+  loop_control:
+    index_var: my_idx
+
+- name: check submariner status
+  debug:
+    msg: "Submariner status False, recycling gateway pods"
+  when: submariner_ready_status == false
+
+- name: Recycle Submariner Gateway Pods
+  ansible.builtin.shell: "{{ kubectl }} delete pods -l app=submariner-gateway -n submariner-operator --context {{ item.name }}"
+  loop: "{{ clusters }}"
+  when: submariner_ready_status == false
+
+- name: Pause and wait for pods from StatefulSet to become ready
+  pause:
+    seconds: 600
+  when: submariner_ready_status == false
+
+- name: get status of pod
   kubernetes.core.k8s_info:
     kind: Pod 
     name: cockroachdb-0
@@ -386,13 +418,10 @@
   set_fact:
     cockroachdb_ready_status: "{{ cockroachdb_ready | json_query('results[].resources[].status.conditions[].status') | regex_search('False') }}"
 
-- name: Recycle Submariner Gateway Pods
-  ansible.builtin.shell: "{{ kubectl }} delete pods -l app=submariner-gateway -n submariner-operator --context {{ item.name }}"
-  loop: "{{ clusters }}"
-
-- name: Pause and wait for pods from StatefulSet to become ready
-  pause:
-    seconds: 600
+- name: check status
+  debug:
+    msg: "Pod not initialized, will intialize now"
+  when: cockroachdb_ready_status == false
 
 - name: Run cockroach init to complete the node startup process and have them join together as a cluster
   ansible.builtin.shell: "{{ kubectl }} exec --context {{ clusters[0].contexts }} --namespace cockroachdb -it cockroachdb-0 -- /cockroach/cockroach init --certs-dir=/cockroach/cockroach-certs"
@@ -402,3 +431,4 @@
     index_var: my_idx
   when: 
     - my_idx == 0
+    - cockroachdb_ready_status == false

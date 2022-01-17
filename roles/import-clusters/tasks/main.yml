@@ -14,9 +14,6 @@
     context: "{{ hub_context }}"
     wait_sleep: 15
     wait_timeout: 400
-    wait_condition:
-      type: Complete
-      status: True
 
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
@@ -32,6 +29,18 @@
           name: "{{ item.name }}"
           labels: 
             cluster.open-cluster-management.io/managedCluster: "{{ item.name }}"
+  loop: "{{ clusters }}"
+
+- name: Wait till namespaces for clusters are created
+  kubernetes.core.k8s_info:
+    api_version: project.openshift.io/v1
+    kind: Project 
+    name: "{{ item.name }}"
+    namespace: hub
+    wait: yes
+    context: "{{ hub_context }}"
+    wait_sleep: 15
+    wait_timeout: 400
   loop: "{{ clusters }}"
 
 - name: Add clusters as managed clusters
