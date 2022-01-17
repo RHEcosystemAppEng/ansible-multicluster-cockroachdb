@@ -33,9 +33,6 @@ kubectl:
 # Cockroachdb cli path 
 cockroach: 
 
-# Application repo for cockroachdb
-app_repo: 
-
 ### Git variables ###
 
 git_url: 
