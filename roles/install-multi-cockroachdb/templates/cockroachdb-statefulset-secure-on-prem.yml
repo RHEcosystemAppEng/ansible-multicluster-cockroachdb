@@ -133,8 +133,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: cockroachdb
-  # TODO: Use this field to specify a namespace other than "default" in which to deploy CockroachDB (e.g., us-east-1).
-  namespace: cockroachdb
 spec:
   serviceName: "cockroachdb"
   replicas: 3
@@ -161,29 +159,13 @@ spec:
                   values:
                   - cockroachdb
               topologyKey: kubernetes.io/hostname
-      # This init container is used to determine the availability zones of the Cockroach pods. The AZs are used to define --locality when starting Cockroach nodes.
-      initContainers:
-      - command:
-        - sh
-        - -ecx
-        - echo "aws-$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone/)"
-          > /etc/cockroach-env/zone
-        image: byrnedo/alpine-curl:0.1
-        imagePullPolicy: IfNotPresent
-        name: locality-container
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /etc/cockroach-env
-          name: cockroach-env
       imagePullSecrets:
       - name: ir-secret
       containers:
       - name: cockroachdb
         image: "registry.connect.redhat.com/cockroachdb/cockroach:v21.2.2"
         imagePullPolicy: IfNotPresent
-#BEGIN ANSIBLE add resources block
+    #BEGIN ANSIBLE add resources block
 # customize resources
         resources:
           requests:
@@ -191,21 +173,21 @@ spec:
             memory: "5Gi"
           limits:
             cpu: "2"
-            memory: "5Gi" 
+            memory: "5Gi"
+    #END ANSIBLE add resources block
         ports:
-#END ANSIBLE add resources block
         - containerPort: 26257
           name: grpc
         - containerPort: 8080
           name: http
 # We recommend that you do not configure a liveness probe on a production environment, as this can impact the availability of production databases.
-#       livenessProbe:
-#         httpGet:
-#           path: "/health"
-#           port: http
-#           scheme: HTTPS
-#         initialDelaySeconds: 30
-#         periodSeconds: 5
+#      livenessProbe:
+#        httpGet:
+#          path: "/health"
+#          port: http
+#          scheme: HTTPS
+#        initialDelaySeconds: 30
+#        periodSeconds: 5
         readinessProbe:
           httpGet:
             path: "/health?ready=1"
@@ -219,8 +201,7 @@ spec:
           mountPath: /cockroach/cockroach-data
         - name: certs
           mountPath: /cockroach/cockroach-certs
-        - name: cockroach-env
-          mountPath: /etc/cockroach-env
+          readOnly: true
         env:
         - name: COCKROACH_CHANNEL
           value: kubernetes-multiregion
@@ -246,10 +227,10 @@ spec:
             start
             --logtostderr
             --certs-dir /cockroach/cockroach-certs
-            --advertise-host $(hostname).{{ item.0.name }}.cockroachdb.cockroachdb.svc.clusterset.local
+            --advertise-host $(hostname).{{ item.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
             --join cockroachdb-0.managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.managed-2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.managed-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.managed-1.cockroachdb.cockroachdb.svc.clusterset.local
-            --locality=region={{ item.2.stdout }},zone={{ item.1.stdout }},dns=$(hostname -f),cloud={{ item.0.cloud }}
+            --locality=region={{ item.region }},zone={{ item.az }},dns=$(hostname -f),cloud={{ item.cloud }}
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
       # No pre-stop hook is required, a SIGTERM plus some time is all that's
@@ -263,8 +244,6 @@ spec:
         secret:
           secretName: cockroachdb.node
           defaultMode: 256
-      - name: cockroach-env
-        emptyDir: {}
   podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate

@@ -1,9 +1,9 @@
 ---
 
-- name: Check amount of clusters
-  include_role:
-    name: install-multi-cockroachdb
-    tasks_from: pre_validation
+# - name: Check amount of clusters
+#   include_role:
+#     name: install-multi-cockroachdb
+#     tasks_from: pre_validation
 
 - name: Wait till MultiClusterHub is created
   kubernetes.core.k8s_info:
@@ -14,9 +14,6 @@
     context: "{{ hub_context }}"
     wait_sleep: 15
     wait_timeout: 400
-    wait_condition:
-      type: Complete
-      status: True
 
 - name: Create cockroachdb namespaces for managed clusters
   kubernetes.core.k8s:
@@ -34,6 +31,18 @@
             cluster.open-cluster-management.io/managedCluster: "{{ item.name }}"
   loop: "{{ clusters }}"
 
+- name: Wait till namespaces for clusters are created
+  kubernetes.core.k8s_info:
+    api_version: project.openshift.io/v1
+    kind: Project 
+    name: "{{ item.name }}"
+    namespace: hub
+    wait: yes
+    context: "{{ hub_context }}"
+    wait_sleep: 15
+    wait_timeout: 400
+  loop: "{{ clusters }}"
+
 - name: Add clusters as managed clusters
   kubernetes.core.k8s:
     wait: yes
@@ -48,6 +57,7 @@
         name: "{{ item.name }}"
       spec:
         hubAcceptsClient: true
+        leaseDurationSeconds: 1800 # 30 min lease duration
   loop: "{{ clusters }}"
 
 - name: Create the klusterlet addon

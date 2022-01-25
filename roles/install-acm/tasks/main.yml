@@ -1,8 +1,8 @@
 ---
-- name: Check amount of clusters
-  include_role:
-    name: install-multi-cockroachdb
-    tasks_from: pre_validation
+# - name: Check amount of clusters
+#   include_role:
+#     name: install-multi-cockroachdb
+#     tasks_from: pre_validation
 
 - name: Create pull secret variable
   set_fact: 
@@ -15,35 +15,35 @@
     state: present
     definition:
       apiVersion: project.openshift.io/v1
-      description: hub
-      displayName: hub
+      description: "{{ hub_context }}"
+      displayName: "{{ hub_context }}"
       kind: Project
       metadata:
-          name: hub
+          name: "{{ hub_context }}"
 
-- name: Create OpenShift Secret
-  shell: "{{ kubectl }} apply -f /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/secret.yaml"
-# - name: Create OpenShift Container Platform pull secret
-#   kubernetes.core.k8s:
-#     wait: yes
-#     context: "{{ hub_context }}"
-#     namespace: hub
-#     state: present
-#     definition:
-#       apiVersion: v1
-#       kind: Secret
-#       metadata:
-#         name: ocp-pull-secret
-#       data:
-#         .dockerconfigjson: "{{ ocp_pull_secret | to_json | b64encode }}"
-#       type: kubernetes.io/dockerconfigjson
+# - name: Create OpenShift Secret
+#   shell: "{{ kubectl }} apply -f /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/secret.yaml"
+- name: Create OpenShift Container Platform pull secret
+  kubernetes.core.k8s:
+    wait: yes
+    context: "{{ hub_context }}"
+    namespace: "{{ hub_context }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ocp-pull-secret
+      data:
+        .dockerconfigjson: "{{ ocp_pull_secret | to_json | b64encode }}"
+      type: kubernetes.io/dockerconfigjson
 
 - name: Create operator group in hub namespace
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
     state: present
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operators.coreos.com/v1
       kind: OperatorGroup
@@ -51,14 +51,14 @@
         name: hub-operator-group
       spec:
         targetNamespaces: 
-        - "hub"
+        - "{{ hub_context }}"
 
 - name: Create ACM operator subscription
   kubernetes.core.k8s:
     wait: yes
     context: "{{ hub_context }}"
     state: present
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operators.coreos.com/v1alpha1
       kind: Subscription
@@ -89,12 +89,13 @@
     wait: yes
     context: "{{ hub_context }}"
     state: present
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operator.open-cluster-management.io/v1
       kind: MultiClusterHub
       metadata:
         name: multiclusterhub
-        namespace: hub
+        namespace: "{{ hub_context }}"
       spec:
         imagePullSecret: ocp-pull-secret
+        disableHubSelfManagement: true
