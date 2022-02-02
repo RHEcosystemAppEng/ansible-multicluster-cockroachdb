@@ -139,7 +139,7 @@
     marker: "  #{mark} ANSIBLE delete volumeClaimTemplates block"
     state: absent
     block: |
-      #BEGIN ANSIBLE add volumeClaimTemplates block
+      #BEGIN ANSIBLE delete volumeClaimTemplates block
       - metadata:
           name: datadir
         spec:
@@ -172,15 +172,15 @@
     path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     marker: "  #{mark} ANSIBLE add volumeClaimTemplates block"
     block: |
-          # customize volumeClaimTemplate
-          - metadata:
-              name: datadir
-            spec:
-              accessModes:
-                - "ReadWriteOnce"
-              resources:
-                requests:
-                  storage: "{{ volumeClaimTemplates_storage }}"
+        # customize volumeClaimTemplate
+            - metadata:
+                name: datadir
+              spec:
+                accessModes:
+                  - "ReadWriteOnce"
+                resources:
+                  requests:
+                    storage: "{{ volumeClaimTemplates_storage }}"
 
 - name: Formatting on-prem add ansible annotation for block add
   lineinfile:
