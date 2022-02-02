@@ -112,6 +112,75 @@
 
 
 # Start of on-prem specific modifications
+# new 
+- name: Formatting on-prem delete volumeClaimTemplate
+  lineinfile:
+    path: "{{ item }}"
+    insertafter: 'volumeClaimTemplates:'
+    firstmatch: yes
+    line: "  #BEGIN ANSIBLE delete volumeClaimTemplates block"
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new 
+- name: Formatting on-prem delete volumeClaimTemplate
+  lineinfile:
+    path: "{{ item }}"
+    insertafter: 'storage: 100Gi'
+    firstmatch: yes
+    line: "  #END ANSIBLE delete volumeClaimTemplates block"
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new 
+- name: Formatting on-prem statefulset remove volumeClaimTemplate as it is created by automation
+  blockinfile:
+    path: "{{ item }}"
+    marker: "  #{mark} ANSIBLE delete volumeClaimTemplates block"
+    state: absent
+    block: |
+      #BEGIN ANSIBLE add volumeClaimTemplates block
+      - metadata:
+          name: datadir
+        spec:
+          accessModes:
+            - "ReadWriteOnce"
+          resources:
+            requests:
+              storage: 100Gi
+      #END ANSIBLE delete volumeClaimTemplates block
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new
+- name: Formatting on-prem add ansible annotation for volumeClaimTemplates
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: 'volumeClaimTemplates'
+    firstmatch: yes
+    line: "  #BEGIN ANSIBLE add volumeClaimTemplates block"
+# new
+- name: Formatting on-prem add ansible annotation for block add
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: '  #BEGIN ANSIBLE add volumeClaimTemplates block'
+    firstmatch: yes
+    line: "  #END ANSIBLE add volumeClaimTemplates block"
+#new 
+- name: Formatting on-prem statefulset add volumeClaimTemplates detail
+  blockinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    marker: "  #{mark} ANSIBLE add volumeClaimTemplates block"
+    block: |
+          # customize volumeClaimTemplate
+          - metadata:
+              name: datadir
+            spec:
+              accessModes:
+                - "ReadWriteOnce"
+              resources:
+                requests:
+                  storage: "{{ volumeClaimTemplates_storage }}"
 
 - name: Formatting on-prem add ansible annotation for block add
   lineinfile:
@@ -140,17 +209,6 @@
                   limits:
                     cpu: "{{ pod_cpu }}"
                     memory: "{{ pod_memory }}"
-
-- name: Create toleration on the pods
-  blockinfile:
-    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
-    marker: "    #{mark} ANSIBLE add resources block"
-    block: |
-        # customize resources
-                tolerations:
-                  - key: node-role.kubernetes.io/master
-                    operator: Exists
-                    effect: NoSchedule
 
 
 - name: Formatting on-prem statefulset add readonly true for certs

@@ -248,6 +248,18 @@ spec:
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates:
+  #BEGIN ANSIBLE add volumeClaimTemplates block
+# customize volumeClaimTemplate
+  - metadata:
+      name: datadir
+    spec:
+      accessModes:
+        - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: "3Gi"
+  #END ANSIBLE add volumeClaimTemplates block
+  #BEGIN ANSIBLE delete volumeClaimTemplates block
   - metadata:
       name: datadir
     spec:
@@ -256,3 +268,4 @@ spec:
       resources:
         requests:
           storage: 100Gi
+  #END ANSIBLE delete volumeClaimTemplates block
