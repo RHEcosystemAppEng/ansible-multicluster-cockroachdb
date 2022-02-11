@@ -1,9 +1,13 @@
 ---
+- name: set default for kubectl
+  set_fact: 
+    kubectl: /usr/local/bin/kubectl
+  when: kubectl is not defined
 
-# - name: Check amount of clusters
-#   include_role:
-#     name: install-multi-cockroachdb
-#     tasks_from: pre_validation
+- name: Check amount of clusters
+  include_role:
+    name: install-multi-cockroachdb
+    tasks_from: pre_validation
 
 - name: Create submariner addon on-prem
   kubernetes.core.k8s:

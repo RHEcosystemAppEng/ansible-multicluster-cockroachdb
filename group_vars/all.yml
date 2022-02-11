@@ -1,16 +1,14 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: "aws-us-west-1", contexts: "aws-us-west-1", cloud: "aws"}
-  - {name: "gcp-us-central-1", contexts: "gcp-us-central-1", cloud: "gcp"}
-  - {name: "gcp-us-west-1", contexts: "gcp-us-west-1", cloud: "gcp"}
-  # - {name: "managed-2", contexts: "managed-2", cloud: "on-prem", region: "us-east1", az: "us-east1-a"}
-  # - {name: "managed-1", contexts: "managed-1", cloud: "on-prem", region: "europe-east1", az: "europe-east1-a"}
+  - {name: "", contexts: "", cloud: ""}
+  - {name: "", contexts: "", cloud: ""}
+  - {name: "", contexts: "", cloud: ""}
 
 # ACM Version
 acm_version: 2.4
 
 # Cockroach Version:
-cockroachdb_version: "v21.2.2"
+cockroachdb_version: 
 
 # AWS credentials set to environment variables:
 # AWS_ACCESS_KEY and AWS_SECRET_KEY
@@ -20,32 +18,29 @@ cockroachdb_version: "v21.2.2"
 # ex. export OCP_SERVICE_ACCOUNT=$(cat ~/.gcp/osServiceAccount.json)
 
 # Hub context - set to the name of cluster for ACM and hub install
-hub_context: hub
+hub_context: 
 
 # OpenShift Container Platform pull secret retreive from --> cloud.redhat.com/openshift/install/pull-secret
 # add path where pull secret is located 
-ocp_pull_secret_path: /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/pull-secret.json
+ocp_pull_secret_path: 
 
 # ManagedClusterSet Name
-clusterset_name: cockroachdb-clusterset
+clusterset_name: 
 
 # kubectl path
-kubectl: /usr/local/bin/kubectl
+kubectl: 
 
 # Cockroachdb cli path 
-cockroach: /usr/local/bin/cockroach
-
-# Application repo for cockroachdb
-app_repo: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
+cockroach: 
 
 ### Git variables ###
 
-git_url: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
-git_branch: 'main'
+git_url: 
+git_branch: 
 git_msg: 'update files with ansible'
 git_remove_local: false
-git_username: cmwylie19
-git_email: cmwylie19@gmail.com
+git_username: ansible_git
+git_email: ansible_git@ansible.com
 
 ### Image Registry credentials ###
 ir_username: 
@@ -56,11 +51,11 @@ ir_username:
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# example: export GIT_SSH_COMMAND="$(cat /Users/cmwylie19/.ssh/id_ed25519)"
+# example: GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
 
 ### Resources ###
 
 # These are the defaults
 pod_cpu: "2"
 pod_memory: "5Gi"
-volumeClaimTemplates_storage: 15Gi
+volumeClaimTemplates_storage: 100Gi

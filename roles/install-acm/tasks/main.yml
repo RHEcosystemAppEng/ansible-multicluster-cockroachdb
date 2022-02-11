@@ -1,8 +1,8 @@
 ---
-# - name: Check amount of clusters
-#   include_role:
-#     name: install-multi-cockroachdb
-#     tasks_from: pre_validation
+- name: Check amount of clusters
+  include_role:
+    name: install-multi-cockroachdb
+    tasks_from: pre_validation
 
 - name: Create pull secret variable
   set_fact: 
@@ -21,8 +21,6 @@
       metadata:
           name: "{{ hub_context }}"
 
-# - name: Create OpenShift Secret
-#   shell: "{{ kubectl }} apply -f /Users/cmwylie19/Public/ansible-multicluster-cockroachdb/secret.yaml"
 - name: Create OpenShift Container Platform pull secret
   kubernetes.core.k8s:
     wait: yes
