@@ -75,7 +75,6 @@
     search_string: 'TODO: Replace the placeholder values in'
 
 # Start of GCP specific modifications
-
 - name: Formatting GCP add ansible annotation for block add
   lineinfile:
     path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
@@ -378,7 +377,7 @@
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset locality command
+- name: Formatting GCP/AWS/On-prem statefulset locality command
   lineinfile:
     path: "{{ item }}"
     search_string: '--locality'
@@ -396,7 +395,13 @@
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
 
-- name: Formatting GCP/AWS/on-prem statefulset volumeclaimtemplates storage
+- name: Formatting AWS statefulset volumeclaimtemplates storage
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
+    search_string: 'storage:'
+    line: '          storage: "{%raw%}{{ volumeClaimTemplates_storage }}{%endraw%}"'
+
+- name: Formatting GCP statefulset volumeclaimtemplates storage
   lineinfile:
     path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
     search_string: 'storage:'

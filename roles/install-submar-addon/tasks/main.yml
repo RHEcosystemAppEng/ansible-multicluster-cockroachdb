@@ -1,15 +1,4 @@
 ---
-# Create submariner addon for AWS first because it takes longer for the submariner-gateway pod to come up
-# If submariner-gateway pod comes up too late the gateways will think that there is a problem with AWS cluster active connections and never become healthy
-# eg. Connection "submariner-cable-aws-us-east-2-10-1-112-157-1-1" not found in active connections obtained from whack: map[], map[]
-# In the event that this occurs you can easily work around:
-# ansible-playbook uninstall-multi-cockroachdb.yml
-# ansible-playbook remove-submar-addon.yml
-# ansible-playbook remove-clusterset.yml
-# ansible-playbook create-clusterset.yml
-# ansible-playbook install-submar-addon.yml
-# ansible-playbook install-multi-cockroachdb.yml
-# This can be run on one line ^ ansible-playbook a.yaml; ansible-playbook b.yaml; ....
 
 # - name: Check amount of clusters
 #   include_role:
@@ -49,6 +38,13 @@
   loop: "{{ clusters }}"
   when: item.cloud == "aws"
 
+- name: Register instance type for AWS
+  shell: |
+    "{{ kubectl }}" get nodes --context "{{ item.contexts }}" -l node-role.kubernetes.io/worker -ojsonpath='{.items[0].metadata.labels.beta\.kubernetes\.io/instance-type}'
+  register: instance_type
+  loop: "{{ clusters }}"
+  when: item.cloud == "aws"
+
 - name: Create submariner addon AWS
   kubernetes.core.k8s:
     wait: yes
@@ -59,12 +55,20 @@
       kind: SubmarinerConfig
       metadata:
           name: submariner
-          namespace: "{{ item.name }}"
+          namespace: "{{ item.0.name }}"
       spec:
+          gatewayConfig:
+            aws:
+              instanceType: "{{ item.1.stdout_lines[0] }}"
           credentialsSecret:
-            name: "{{ item.name }}-aws-creds"
-  loop: "{{ clusters }}"
-  when: item.cloud == "aws"
+            name: "{{ item.0.name }}-aws-creds"
+  with_together:
+  -  "{{ clusters }}"
+  -  "{{ instance_type.results }}"
+  loop_control:
+    index_var: my_idx
+  when: item.0.cloud == "aws"
+
 
 - name: Create secret for GCP credentials
   kubernetes.core.k8s:

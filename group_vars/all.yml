@@ -1,7 +1,10 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: "managed-2", contexts: "managed-2", cloud: "on-prem", region: "us-east1", az: "us-east1-a"}
-  - {name: "managed-1", contexts: "managed-1", cloud: "on-prem", region: "europe-east1", az: "europe-east1-a"}
+  - {name: "aws-us-west-1", contexts: "aws-us-west-1", cloud: "aws"}
+  - {name: "gcp-us-central-1", contexts: "gcp-us-central-1", cloud: "gcp"}
+  - {name: "gcp-us-west-1", contexts: "gcp-us-west-1", cloud: "gcp"}
+  # - {name: "managed-2", contexts: "managed-2", cloud: "on-prem", region: "us-east1", az: "us-east1-a"}
+  # - {name: "managed-1", contexts: "managed-1", cloud: "on-prem", region: "europe-east1", az: "europe-east1-a"}
 
 # ACM Version
 acm_version: 2.4
@@ -60,4 +63,4 @@ ir_username:
 # These are the defaults
 pod_cpu: "2"
 pod_memory: "5Gi"
-volumeClaimTemplates_storage: 3Gi
+volumeClaimTemplates_storage: 15Gi
