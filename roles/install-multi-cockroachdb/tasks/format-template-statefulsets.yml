@@ -15,15 +15,22 @@
     src: "{{ role_path }}/files/cockroach/cloud/kubernetes/multiregion/cockroachdb-statefulset-secure.yaml"
     dest: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
 
+- name: Copy on-prem statefulset from git repo
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/cockroach/cloud/kubernetes/multiregion/cockroachdb-statefulset-secure.yaml"
+    dest: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
 - name: Get Cluster Regions
   ansible.builtin.shell: "{{ kubectl }} cluster-info dump --context {{ item.contexts }} | grep topology.kubernetes.io/region | awk 'FNR == 1 { print $2}' | tr -d '\",' "
   loop: "{{ clusters }}"
   register: region
+  when: item.cloud != "on-prem"
 
 - name: Get Cluster AZs
   ansible.builtin.shell: "{{ kubectl }} cluster-info dump --context {{ item.contexts }} | grep topology.kubernetes.io/zone | awk 'FNR == 1 { print $2}' | tr -d '\",'"
   loop: "{{ clusters }}"
   register: zone
+  when: item.cloud != "on-prem"
 
 # Start of AWS specific modifications
 - name: Formatting AWS statefulset add namespace for statefulset
@@ -68,7 +75,6 @@
     search_string: 'TODO: Replace the placeholder values in'
 
 # Start of GCP specific modifications
-
 - name: Formatting GCP add ansible annotation for block add
   lineinfile:
     path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
@@ -103,8 +109,124 @@
     insertafter: 'mountPath: /cockroach/cockroach-certs'
     line: '          readOnly: true'
 
-# Start of combined modifications to statefulset AWS/GCP 
-- name: Formatting GCP/AWS add ansible annotation for delete
+
+# Start of on-prem specific modifications
+# new 
+- name: Formatting on-prem delete volumeClaimTemplate
+  lineinfile:
+    path: "{{ item }}"
+    insertafter: 'volumeClaimTemplates:'
+    firstmatch: yes
+    line: "  #BEGIN ANSIBLE delete volumeClaimTemplates block"
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new 
+- name: Formatting on-prem delete volumeClaimTemplate
+  lineinfile:
+    path: "{{ item }}"
+    insertafter: 'storage: 100Gi'
+    firstmatch: yes
+    line: "  #END ANSIBLE delete volumeClaimTemplates block"
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new 
+- name: Formatting on-prem statefulset remove volumeClaimTemplate as it is created by automation
+  blockinfile:
+    path: "{{ item }}"
+    marker: "  #{mark} ANSIBLE delete volumeClaimTemplates block"
+    state: absent
+    block: |
+      #BEGIN ANSIBLE delete volumeClaimTemplates block
+      - metadata:
+          name: datadir
+        spec:
+          accessModes:
+            - "ReadWriteOnce"
+          resources:
+            requests:
+              storage: 100Gi
+      #END ANSIBLE delete volumeClaimTemplates block
+  loop:
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# new
+- name: Formatting on-prem add ansible annotation for volumeClaimTemplates
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: 'volumeClaimTemplates'
+    firstmatch: yes
+    line: "  #BEGIN ANSIBLE add volumeClaimTemplates block"
+# new
+- name: Formatting on-prem add ansible annotation for block add
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: '  #BEGIN ANSIBLE add volumeClaimTemplates block'
+    firstmatch: yes
+    line: "  #END ANSIBLE add volumeClaimTemplates block"
+#new 
+- name: Formatting on-prem statefulset add volumeClaimTemplates detail
+  blockinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    marker: "  #{mark} ANSIBLE add volumeClaimTemplates block"
+    block: |
+        # customize volumeClaimTemplate
+            - metadata:
+                name: datadir
+              spec:
+                accessModes:
+                  - "ReadWriteOnce"
+                resources:
+                  requests:
+                    storage: "{{ volumeClaimTemplates_storage }}"
+
+- name: Formatting on-prem add ansible annotation for block add
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: 'imagePullPolicy'
+    firstmatch: yes
+    line: "    #BEGIN ANSIBLE add resources block"
+
+- name: Formatting on-prem add ansible annotation for block add
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: '#BEGIN ANSIBLE add resources block'
+    firstmatch: yes
+    line: "    #END ANSIBLE add resources block"
+
+- name: Formatting on-prem statefulset remove service account as it is created else where
+  blockinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    marker: "    #{mark} ANSIBLE add resources block"
+    block: |
+        # customize resources
+                resources:
+                  requests:
+                    cpu: "{{ pod_cpu }}"
+                    memory: "{{ pod_memory }}"
+                  limits:
+                    cpu: "{{ pod_cpu }}"
+                    memory: "{{ pod_memory }}"
+
+
+- name: Formatting on-prem statefulset add readonly true for certs
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    insertafter: 'mountPath: /cockroach/cockroach-certs'
+    line: '          readOnly: true'
+
+# Start of combined modifications to statefulset on-prem 
+- name: Formatting on-prem statefulset advertise host
+  lineinfile:
+    path: "{{ item }}"
+    search_string: '--advertise-host $(hostname -f)'
+    line: '            --advertise-host $(hostname).{%raw%}{{ item.name }}{%endraw%}.cockroachdb.cockroachdb.svc.clusterset.local'
+  loop:
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+# Start of combined modifications to statefulset AWS/GCP/on-prem
+- name: Formatting GCP/AWS/on-prem add ansible annotation for delete
   lineinfile:
     path: "{{ item }}"
     insertbefore: '^apiVersion: v1'
@@ -112,9 +234,10 @@
     line: "#BEGIN ANSIBLE delete service block"
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS add ansible annotation for delete
+- name: Formatting GCP/AWS/on-prem add ansible annotation for delete
   lineinfile:
     path: "{{ item }}"
     insertbefore: 'apiVersion: rbac.authorization.k8s.io/v1'
@@ -122,9 +245,10 @@
     line: "#END ANSIBLE delete service block"
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset remove service account as it is created else where
+- name: Formatting GCP/AWS/on-prem statefulset remove service account as it is created else where
   blockinfile:
     path: "{{ item }}"
     marker: "#{mark} ANSIBLE delete service block"
@@ -139,69 +263,77 @@
       ---
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add runAsUser
+- name: Formatting GCP/AWS/on-prem statefulset add runAsUser
   lineinfile:
     path: "{{ item }}"
     insertbefore: 'serviceAccountName'
     line: '        runAsUser: 0'
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add securityContext
+- name: Formatting GCP/AWS/on-prem statefulset add securityContext
   lineinfile:
     path: "{{ item }}"
     insertbefore: 'runAsUser'
     line: '      securityContext:'
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add imagePullSecrets
+- name: Formatting GCP/AWS/on-prem statefulset add imagePullSecrets
   lineinfile:
     path: "{{ item }}"
     insertbefore: 'containers'
     line: '      imagePullSecrets:'
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add name for image pull secrets ir-secret
+- name: Formatting GCP/AWS/on-prem statefulset add name for image pull secrets ir-secret
   lineinfile:
     path: "{{ item }}"
     insertafter: 'imagePullSecrets'
     line: '      - name: ir-secret'
   loop:
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+    - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
     - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add image
+- name: Formatting GCP/AWS/on-prem statefulset add image
   lineinfile:
     path: "{{ item }}"
     search_string: 'image: cockroachdb/cockroach:'
     line: '        image: "registry.connect.redhat.com/cockroachdb/cockroach:{{ cockroachdb_version }}"'
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add skip key permission check
+- name: Formatting GCP/AWS/on-prem statefulset add skip key permission check
   lineinfile:
     path: "{{ item }}"
     insertafter: 'kubernetes-multiregion'
     line: '        - name: COCKROACH_SKIP_KEY_PERMISSION_CHECK'
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset add skip key permission check value true
+- name: Formatting GCP/AWS/on-prem statefulset add skip key permission check value true
   lineinfile:
     path: "{{ item }}"
     insertafter: 'COCKROACH_SKIP_KEY_PERMISSION_CHECK'
     line: '          value: "true"'
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
 - name: Formatting GCP/AWS statefulset advertise host
@@ -235,31 +367,57 @@
   ansible.builtin.debug:
     msg: "{{ format_join_command }}"
 
-- name: Formatting GCP/AWS statefulset join command
+- name: Formatting GCP/AWS/on-prem statefulset join command
   lineinfile:
     path: "{{ item }}"
     search_string: '--join'
     line: '            --join {{ format_join_command }}'
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset locality command
+- name: Formatting GCP/AWS/On-prem statefulset locality command
   lineinfile:
     path: "{{ item }}"
     search_string: '--locality'
     line: '            --locality=region={%raw%}{{ item.2.stdout }},zone={{ item.1.stdout }},dns=$(hostname -f),cloud={{ item.0.cloud }}{%endraw%}'
   loop:
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
   - "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
 
-- name: Formatting GCP/AWS statefulset volumeclaimtemplates storage
+- name: Formatting on-prem statefulset locality command
+  lineinfile:
+    path: "{{ item }}"
+    search_string: '--locality'
+    line: '            --locality=region={%raw%}{{ item.region }},zone={{ item.az }},dns=$(hostname -f),cloud={{ item.cloud }}{%endraw%}'
+  loop:
+  - "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+
+- name: Formatting AWS statefulset volumeclaimtemplates storage
+  lineinfile:
+    path: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"
+    search_string: 'storage:'
+    line: '          storage: "{%raw%}{{ volumeClaimTemplates_storage }}{%endraw%}"'
+
+- name: Formatting GCP statefulset volumeclaimtemplates storage
   lineinfile:
     path: "{{ role_path }}/templates/cockroachdb-statefulset-secure-gcp.yml"
     search_string: 'storage:'
     line: '          storage: "{%raw%}{{ volumeClaimTemplates_storage }}{%endraw%}"'
 
 # Finale templating
+- name: Template a file to /etc/file.conf on-prem
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"
+    dest: "{{ playbook_dir }}/resources/cockroachdb/cluster{{ my_idx }}/cockroachdb-statefulset-secure.yaml"
+  loop: "{{ clusters }}"
+  loop_control:
+    index_var: my_idx
+  when: item.cloud == "on-prem"
+
+
 - name: Template a file to /etc/file.conf AWS
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure.yml"

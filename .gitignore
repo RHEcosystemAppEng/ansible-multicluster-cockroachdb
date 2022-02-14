@@ -7,7 +7,7 @@
 !/roles/install-acm/files/.gitkeep
 
 .DS_store
-
+.vscode
 *.crt
 *.key
 

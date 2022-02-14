@@ -10,7 +10,6 @@
   when: kubectl is not defined
 
 - name: Delete directories needed for cockroachdb statefulset
-  ignore_errors: yes
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
@@ -25,6 +24,7 @@
     state: absent
 
 - name: Delete the serviceExport for cockroachdb service
+  ignore_errors: yes
   kubernetes.core.k8s:
     wait: yes 
     state: absent

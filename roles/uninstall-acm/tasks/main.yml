@@ -15,13 +15,13 @@
     wait: yes
     wait_sleep: 30
     wait_timeout: 1500 # Wait 25 mins
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operator.open-cluster-management.io/v1
       kind: MultiClusterHub
       metadata:
         name: multiclusterhub
-        namespace: hub
+        namespace: "{{ hub_context }}"
       spec:
         imagePullSecret: ocp-pull-secret
 
@@ -31,7 +31,7 @@
   kubernetes.core.k8s:
     state: absent
     wait: yes
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operators.coreos.com/v1
       kind: OperatorGroup
@@ -39,13 +39,13 @@
         name: hub-operator-group
       spec:
         targetNamespaces: 
-        - "hub"
+        - "{{ hub_context }}"
 
 - name: Delete ACM operator subscription
   kubernetes.core.k8s:
     state: absent
     wait: yes
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operators.coreos.com/v1alpha1
       kind: Subscription
@@ -62,18 +62,18 @@
   kubernetes.core.k8s:
     state: absent
     wait: yes
-    namespace: hub
+    namespace: "{{ hub_context }}"
     definition:
       apiVersion: operators.coreos.com/v1alpha1
       kind: ClusterServiceVersion
       metadata:
         name: advanced-cluster-management.v2.3.3
-        namespace: hub
+        namespace: "{{ hub_context }}"
       spec: {}
 
 - name: Delete PVCs, SVCs, Deploys, SAs, Secrets, Pods, and CMs and wait until they're deleted
   shell: |
-    "{{ kubectl }}" delete pvc,svc,deploy,sa,cm,pod,secret --all -n hub  --wait 
+    "{{ kubectl }}" delete pvc,svc,deploy,sa,cm,pod,secret --all -n "{{ hub_context }}"  --wait 
 
 - name: Delete namespace for ACM (hub)
   kubernetes.core.k8s:
@@ -81,11 +81,11 @@
     wait: yes
     definition:
       apiVersion: project.openshift.io/v1
-      description: hub
-      displayName: hub
+      description: "{{ hub_context }}"
+      displayName: "{{ hub_context }}"
       kind: Project
       metadata:
-          name: hub
+          name: "{{ hub_context }}"
 
 #ACM intermittently leaves klusterlets, make sure it was deleted when the managed cluster was deleted
 - name: Check if klusterlet is still installed                            

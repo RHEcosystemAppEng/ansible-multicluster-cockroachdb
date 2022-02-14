@@ -57,6 +57,7 @@
         name: "{{ item.name }}"
       spec:
         hubAcceptsClient: true
+        leaseDurationSeconds: 1800 # 30 min lease duration
   loop: "{{ clusters }}"
 
 - name: Create the klusterlet addon
@@ -76,7 +77,7 @@
         applicationManager:
           enabled: true
         certPolicyController:
-          enabled: true
+          enabled: false
         clusterLabels:
           cloud: auto-detect
           vendor: auto-detect
@@ -85,7 +86,7 @@
         policyController:
           enabled: true
         searchCollector:
-          enabled: true
+          enabled: false
         version: 2.3.0
   loop: "{{ clusters }}"
 
