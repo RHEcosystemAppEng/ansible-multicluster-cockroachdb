@@ -1,3 +1,4 @@
+# Generated file, DO NOT EDIT. Source: cloud/kubernetes/templates/multiregion/cockroachdb-statefulset-secure.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -229,7 +230,7 @@ spec:
             --certs-dir /cockroach/cockroach-certs
             --advertise-host $(hostname).{{ item.0.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
-            --join cockroachdb-0.aws-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.aws-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.aws-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-us-central-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-us-west-1.cockroachdb.cockroachdb.svc.clusterset.local
+            --join cockroachdb-0.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local
             --locality=region={{ item.2.stdout }},zone={{ item.1.stdout }},dns=$(hostname -f),cloud={{ item.0.cloud }}
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB

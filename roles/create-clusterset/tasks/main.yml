@@ -1,8 +1,8 @@
 ---
-- name: Check amount of clusters
-  include_role:
-    name: install-multi-cockroachdb
-    tasks_from: pre_validation
+# - name: Check amount of clusters
+#   include_role:
+#     name: install-multi-cockroachdb
+#     tasks_from: pre_validation
 
 - name: set default for clusterSet Name
   set_fact: 
