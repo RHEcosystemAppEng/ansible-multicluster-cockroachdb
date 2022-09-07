@@ -1,0 +1,7 @@
+---
+- name: Prepare Submariner
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - prepare-submariner

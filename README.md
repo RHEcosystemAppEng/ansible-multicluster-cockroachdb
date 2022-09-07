@@ -27,7 +27,7 @@ The automation will do the following:
 
 -  Modules
    
-   - [k8s](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html#ansible-collections-kubernetes-core-k8s-module "k8s module") - To install it, use: ansible-galaxy collection install kubernetes.core
+   - [k8s](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html#ansible-collections-kubernetes-core-k8s-module "k8s module") - To install it, use: `ansible-galaxy collection install kubernetes.core`
    - [k8_info](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_info_module.html#ansible-collections-kubernetes-core-k8s-info-module "k8_infor module") - comes with the install of kubernetes.core
 
 [kubectl](https://kubernetes.io/docs/tasks/tools/ "kubectl install") - The Kubernetes command-line tool

@@ -1,7 +1,9 @@
 # cluster name, cluster count, kubeconfig context
 clusters:
-  - {name: gcp-mgmt1-cwylie, contexts: gcp-mgmt1-cwylie, cloud: gcp}
-  - {name: gcp-mgmt2-cwylie, contexts: gcp-mgmt2-cwylie, cloud: gcp}
+  - {name: gcp-mgmt1, contexts: gcp-mgmt1, cloud: gcp}
+  - {name: gcp-mgmt2, contexts: gcp-mgmt2, cloud: gcp}
+  - {name: jp-test2, contexts: jp-test2, cloud: azure}
+  - {name: jp-test3, contexts: jp-test3, cloud: azure}
 
 # ACM Version
 acm_version: 2.4
@@ -26,6 +28,9 @@ ocp_pull_secret_path: ~/.pull-secret.json
 # ManagedClusterSet Name
 clusterset_name: cockroachdb-clusterset
 
+# az path
+az: /usr/local/bin/az
+
 # kubectl path
 kubectl: /usr/local/bin/kubectl
 
@@ -35,7 +40,7 @@ cockroach: /usr/local/bin/cockroach
 ### Git variables ###
 
 git_url: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
-git_branch: 'main'
+git_branch: 'azure-dev'
 git_msg: 'update files with ansible'
 git_remove_local: false
 git_username: ansible_git
