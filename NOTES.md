@@ -23,4 +23,3 @@ pip3 install openshift pyyaml kubernetes --user
 
 
  ansible-playbook prepare-submariner.yaml  -i localhost
-

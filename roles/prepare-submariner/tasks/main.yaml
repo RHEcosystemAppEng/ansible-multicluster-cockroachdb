@@ -54,14 +54,14 @@
   with_together:
   - "{{ clusters }}"
   - "{{ no_name_.results }}"
-  register: tag_results_
+  register: label_results_
   when: item.0.cloud == "azure"
 
 # Ensure correctness
-- name: Print the Node tag results
+- name: Print the Node label results
   debug:
-    msg: Tag Results {{ item.stdout }}
-  loop: "{{ tag_results_.results }}"
+    msg: Node label results {{ item.stdout }}
+  loop: "{{ label_results_.results }}"
   when: item.changed == true
 
 ############
@@ -79,7 +79,7 @@
 # # Ensure correctness
 # - name: Create the public ip results
 #   debug:
-#     msg: Tag Results {{ item.stdout }}
+#     msg: Create Public IP Results {{ item.stdout }}
 #   loop: "{{ pip_results_.results }}"
 #   when: item.changed == true
 
@@ -135,20 +135,19 @@
   when: item.changed == true
 
 - name: Assign Public IP to the VM of gateway node
-  ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.4.stdout }}
+  ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.0.name }}-pip
   register: nic_pip_update
   with_together:
   - "{{ clusters }}"
-  - "{{ nic_pip_update.results }}"
+  - "{{ nic_pip_name_.results }}"
   - "{{ rg_name_.results }}"
   - "{{ nic_name_.results }}"
-  - "{{ pip_results_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
 - name: Display NIC PIP config update results
   debug:
-    msg: Nic PIP Update Results {{ item.stdout }}
+    msg: Assign Public IP to gateway node Results {{ item.stdout }}
   loop: "{{ nic_pip_update.results }}"
   when: item.changed == true
 
