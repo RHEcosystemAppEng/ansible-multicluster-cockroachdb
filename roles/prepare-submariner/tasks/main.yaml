@@ -175,7 +175,7 @@
 ############
 
 - name: NSG Rule to open Inbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 45000 4490 8080 8181
+  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
   register: nsg_inbound_create_
   with_together:
   - "{{ clusters }}"
@@ -185,12 +185,12 @@
 # Ensure correctness
 - name: Check NSG Inbound Rules 
   debug:
-    msg: Created NSG Inbound Rules created {{ item.stdout }}
+    msg: NSG Inbound Rules results {{ item.stdout }}
   loop: "{{ nsg_inbound_create_.results }}"
   when: item.changed == true
 
 - name: NSG Rule to open Outbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 45000 4490 8080 8181
+  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
   register: nsg_outbound_create_
   with_together:
   - "{{ clusters }}"
@@ -200,7 +200,7 @@
 # Ensure correctness
 - name: Check NSG Outbound Rules 
   debug:
-    msg: Created NSG Outbound Rules created {{ item.stdout }}
+    msg: NSG Outbound Rules results {{ item.stdout }}
   loop: "{{ nsg_outbound_create_.results }}"
   when: item.changed == true
 
