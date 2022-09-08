@@ -68,20 +68,20 @@
 ## Step 2 ##
 ############
 
-# - name: Create a public IP
-#   ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
-#   register: pip_results_
-#   with_together:
-#   - "{{ clusters }}"
-#   - "{{ rg_name_.results }}"
-#   when: item.0.cloud == "azure"
+- name: Create a public IP
+  ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
+  register: pip_results_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
 
-# # Ensure correctness
-# - name: Create the public ip results
-#   debug:
-#     msg: Create Public IP Results {{ item.stdout }}
-#   loop: "{{ pip_results_.results }}"
-#   when: item.changed == true
+# Ensure correctness
+- name: Create the public ip results
+  debug:
+    msg: Create Public IP Results {{ item.stdout }}
+  loop: "{{ pip_results_.results }}"
+  when: item.changed == true
 
 # az network lb show -n jp-test2-dc5d6 -g jp-test2-dc5d6-rg  | grep nic | grep jp-test2-dc5d6-worker-centralus1-dqrdl | grep -v '"id"' | sed 's/"//g' | sed 's/name: //g' | sed 's/ //g' | sed 's/,//g'
 - name: Find the NIC Name of the gateway Node
@@ -102,7 +102,7 @@
   when: item.changed == true
 
 - name: Find NIC interface addresses
-  ansible.builtin.shell:  az network nic ip-config list --resource-group {{ item.1.results }} --nic-name {{ item.2.results }} | jq -r ' .[0] | .privateIpAddress'
+  ansible.builtin.shell:  az network nic ip-config list --resource-group {{ item.1.stdout }} --nic-name {{ item.2.stdout }} | jq -r ' .[0] | .privateIpAddress'
   register: nic_address_
   with_together:
   - "{{ clusters }}"
@@ -265,31 +265,31 @@
 ############
 
 
-- name: Find the public IP name for each Azure cluster
-  ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }} --query "frontendIpConfigurations[].publicIpAddress.id" --out tsv | awk 'FNR==2 { print $1 }'  | awk -F '/' '{print $9}'
-  register: ip_name_
-  with_together:
-  - "{{ clusters }}"
-  - "{{ lb_name_.results }}"
-  - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: Find the public IP name for each Azure cluster
+#   ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }} --query "frontendIpConfigurations[].publicIpAddress.id" --out tsv | awk 'FNR==2 { print $1 }'  | awk -F '/' '{print $9}'
+#   register: ip_name_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ lb_name_.results }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-- name: Print the public ip names
-  debug:
-    msg: IP name {{item.stdout}}
-  loop: "{{ ip_name_.results }}"
-  when: item.changed == true 
+# - name: Print the public ip names
+#   debug:
+#     msg: IP name {{item.stdout}}
+#   loop: "{{ ip_name_.results }}"
+#   when: item.changed == true 
 
 
-- name: Check Azure variables
-  debug:
-    msg: LB={{ item.1.stdout}}  ResourceGroup={{ item.2.stdout}} NatRule={{item.0.name}}-nr NSG={{item.0.name}}-nsg IpName={{item.3.stdout}} NicName={{item.0.name}}-nic IpConfig
-  with_together:
-  - "{{ clusters }}"
-  - "{{ lb_name_.results }}"
-  - "{{ rg_name_.results }}"
-  - "{{ ip_name_.results }}"
-  loop_control:
-    index_var: my_idx
-  when: item.0.cloud == "azure"
+# - name: Check Azure variables
+#   debug:
+#     msg: LB={{ item.1.stdout}}  ResourceGroup={{ item.2.stdout}} NatRule={{item.0.name}}-nr NSG={{item.0.name}}-nsg IpName={{item.3.stdout}} NicName={{item.0.name}}-nic IpConfig
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ lb_name_.results }}"
+#   - "{{ rg_name_.results }}"
+#   - "{{ ip_name_.results }}"
+#   loop_control:
+#     index_var: my_idx
+#   when: item.0.cloud == "azure"
 # pip = public ip
