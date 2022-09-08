@@ -210,11 +210,12 @@
 ############
 
 - name: Attach the Security Group to the Gatewaty VM Interface
-  ansible.builtin.shell: az network nic update -g {{ item.1.stdout }} -n <g2-vm-nic> --network-security-group {{ item.0.name }}-nsg 
+  ansible.builtin.shell: az network nic update -g {{ item.1.stdout }} -n {{ item.2.stdout }} --network-security-group {{ item.0.name }}-nsg 
   register: sg_attach_output
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
+  - "{{ nic_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
