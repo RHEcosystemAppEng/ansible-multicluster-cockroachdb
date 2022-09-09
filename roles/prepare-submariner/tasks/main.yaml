@@ -68,20 +68,20 @@
 ## Step 2 ##
 ############
 
-- name: Create a public IP
-  ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
-  register: pip_results_
-  with_together:
-  - "{{ clusters }}"
-  - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: Create a public IP
+#   ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
+#   register: pip_results_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Create the public ip results
-  debug:
-    msg: Create Public IP Results {{ item.stdout }}
-  loop: "{{ pip_results_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Create the public ip results
+#   debug:
+#     msg: Create Public IP Results {{ item.stdout }}
+#   loop: "{{ pip_results_.results }}"
+#   when: item.changed == true
 
 # az network lb show -n jp-test2-dc5d6 -g jp-test2-dc5d6-rg  | grep nic | grep jp-test2-dc5d6-worker-centralus1-dqrdl | grep -v '"id"' | sed 's/"//g' | sed 's/name: //g' | sed 's/ //g' | sed 's/,//g'
 - name: Find the NIC Name of the gateway Node
@@ -118,11 +118,12 @@
   when: item.changed == true
 
 - name: Find NIC PIP Config of gateway nodes
-  ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} |  grep -v '"id"' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g'  | sed 's/,//g' 
+  ansible.builtin.shell: az network nic ip-config list  --resource-group {{ item.2.stdout }}  --nic-name {{ item.1.stdout }}   | jq -r '.[0] | .name'
+  #az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} |  grep -v '"id"' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g'  | sed 's/,//g' 
   register: nic_pip_name_
   with_together:
   - "{{ clusters }}"
-  - "{{ lb_name_.results }}"
+  - "{{ nic_name_.results }}"
   - "{{ rg_name_.results }}"
   - "{{ no_name_.results }}"
   when: item.0.cloud == "azure"
@@ -134,131 +135,134 @@
   loop: "{{ nic_pip_name_.results }}"
   when: item.changed == true
 
-- name: Assign Public IP to the VM of gateway node
-  ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.0.name }}-pip
-  register: nic_pip_update
-  with_together:
-  - "{{ clusters }}"
-  - "{{ nic_pip_name_.results }}"
-  - "{{ rg_name_.results }}"
-  - "{{ nic_name_.results }}"
-  when: item.0.cloud == "azure"
+# az network nic ip-config update --name jp-test2-dc5d6-rg_jp-test2-dc5d6-worker-centralus1-dqrdl-nicpipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
+# az network nic ip-config list  --resource-group jp-test2-dc5d6-rg  --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic | jq -r '.[0] | .name'
+# # az network nic ip-config update --name pipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
+# - name: Assign Public IP to the VM of gateway node
+#   ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.0.name }}-pip
+#   register: nic_pip_update
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ nic_pip_name_.results }}"
+#   - "{{ rg_name_.results }}"
+#   - "{{ nic_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Display NIC PIP config update results
-  debug:
-    msg: Assign Public IP to gateway node Results {{ item.stdout }}
-  loop: "{{ nic_pip_update.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Display NIC PIP config update results
+#   debug:
+#     msg: Assign Public IP to gateway node Results {{ item.stdout }}
+#   loop: "{{ nic_pip_update.results }}"
+#   when: item.changed == true
 
 ############
 ## Step 3 ##
 ############
 
-- name: Create NSG for Submariner GW
-  ansible.builtin.shell: az network nsg create --name {{ item.0.name }}-nsg    --resource-group {{ item.1.stdout }}
-  register: nsg_create_
-  with_together:
-  - "{{ clusters }}"
- - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: Create NSG for Submariner GW
+#   ansible.builtin.shell: az network nsg create --name {{ item.0.name }}-nsg    --resource-group {{ item.1.stdout }}
+#   register: nsg_create_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Display created network security groups 
-  debug:
-    msg: Created NSG {{ item.stdout }}
-  loop: "{{ nsg_create_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Display created network security groups 
+#   debug:
+#     msg: Created NSG {{ item.stdout }}
+#   loop: "{{ nsg_create_.results }}"
+#   when: item.changed == true
 
 ############
 ## Step 4 ##
 ############
 
-- name: NSG Rule to open Inbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
-  register: nsg_inbound_create_
-  with_together:
-  - "{{ clusters }}"
- - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: NSG Rule to open Inbound ports 4500,4490, and 8080 for Submariner 
+#   ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
+#   register: nsg_inbound_create_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Check NSG Inbound Rules 
-  debug:
-    msg: NSG Inbound Rules results {{ item.stdout }}
-  loop: "{{ nsg_inbound_create_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Check NSG Inbound Rules 
+#   debug:
+#     msg: NSG Inbound Rules results {{ item.stdout }}
+#   loop: "{{ nsg_inbound_create_.results }}"
+#   when: item.changed == true
 
-- name: NSG Rule to open Outbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
-  register: nsg_outbound_create_
-  with_together:
-  - "{{ clusters }}"
- - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: NSG Rule to open Outbound ports 4500,4490, and 8080 for Submariner 
+#   ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
+#   register: nsg_outbound_create_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Check NSG Outbound Rules 
-  debug:
-    msg: NSG Outbound Rules results {{ item.stdout }}
-  loop: "{{ nsg_outbound_create_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Check NSG Outbound Rules 
+#   debug:
+#     msg: NSG Outbound Rules results {{ item.stdout }}
+#   loop: "{{ nsg_outbound_create_.results }}"
+#   when: item.changed == true
 
 
 ############
 ## Step 5 ##
 ############
 
-- name: Attach the Security Group to the Gatewaty VM Interface
-  ansible.builtin.shell: az network nic update -g {{ item.1.stdout }} -n {{ item.2.stdout }} --network-security-group {{ item.0.name }}-nsg 
-  register: sg_attach_output
-  with_together:
-  - "{{ clusters }}"
-  - "{{ rg_name_.results }}"
-  - "{{ nic_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: Attach the Security Group to the Gatewaty VM Interface
+#   ansible.builtin.shell: az network nic update -g {{ item.1.stdout }} -n {{ item.2.stdout }} --network-security-group {{ item.0.name }}-nsg 
+#   register: sg_attach_output
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   - "{{ nic_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Output from attach Security Group to VM Interface
-  debug:
-    msg: Attach Security group to vm inteface results {{ item.stdout }}
-  loop: "{{ sg_attach_output.results }}"
+# # Ensure correctness
+# - name: Output from attach Security Group to VM Interface
+#   debug:
+#     msg: Attach Security group to vm inteface results {{ item.stdout }}
+#   loop: "{{ sg_attach_output.results }}"
   when: item.changed == true
 
 ############
 ## Step 6 ##
 ############
 
-- name: NSG Rules to open VXLAN inbound port 4800/UDP -n existing NSG
-  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4800
-  register: vxlan_inbound_
-  with_together:
-  - "{{ clusters }}"
- - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: NSG Rules to open VXLAN inbound port 4800/UDP -n existing NSG
+#   ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4800
+#   register: vxlan_inbound_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Output VXLAN inbound port
-  debug:
-    msg: VXLAN inbound port results {{ item.stdout }}
-  loop: "{{ vxlan_inbound_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Output VXLAN inbound port
+#   debug:
+#     msg: VXLAN inbound port results {{ item.stdout }}
+#   loop: "{{ vxlan_inbound_.results }}"
+#   when: item.changed == true
 
 
-- name: NSG Rules to open VXLAN outbound port 4800/UDP -n existing NSG
-  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4800
-  register: vxlan_outbound_
-  with_together:
-  - "{{ clusters }}"
- - "{{ rg_name_.results }}"
-  when: item.0.cloud == "azure"
+# - name: NSG Rules to open VXLAN outbound port 4800/UDP -n existing NSG
+#   ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4800
+#   register: vxlan_outbound_
+#   with_together:
+#   - "{{ clusters }}"
+#   - "{{ rg_name_.results }}"
+#   when: item.0.cloud == "azure"
 
-# Ensure correctness
-- name: Output VXLAN outbound port
-  debug:
-    msg: VXLAN inbound port results {{ item.stdout }}
-  loop: "{{ vxlan_outbound_.results }}"
-  when: item.changed == true
+# # Ensure correctness
+# - name: Output VXLAN outbound port
+#   debug:
+#     msg: VXLAN inbound port results {{ item.stdout }}
+#   loop: "{{ vxlan_outbound_.results }}"
+#   when: item.changed == true
 
 ############
 ## Extras ##

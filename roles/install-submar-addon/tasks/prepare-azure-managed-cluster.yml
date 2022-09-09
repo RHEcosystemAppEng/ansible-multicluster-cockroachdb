@@ -118,11 +118,12 @@
   when: item.changed == true
 
 - name: Find NIC PIP Config of gateway nodes
-  ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} |  grep -v '"id"' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g'  | sed 's/,//g' 
+  ansible.builtin.shell: az network nic ip-config list  --resource-group {{ item.2.stdout }}  --nic-name {{ item.1.stdout }}   | jq -r '.[0] | .name'
+  #az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} |  grep -v '"id"' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g'  | sed 's/,//g' 
   register: nic_pip_name_
   with_together:
   - "{{ clusters }}"
-  - "{{ lb_name_.results }}"
+  - "{{ nic_name_.results }}"
   - "{{ rg_name_.results }}"
   - "{{ no_name_.results }}"
   when: item.0.cloud == "azure"
@@ -134,6 +135,9 @@
   loop: "{{ nic_pip_name_.results }}"
   when: item.changed == true
 
+# az network nic ip-config update --name jp-test2-dc5d6-rg_jp-test2-dc5d6-worker-centralus1-dqrdl-nicpipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
+# az network nic ip-config list  --resource-group jp-test2-dc5d6-rg  --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic | jq -r '.[0] | .name'
+# # az network nic ip-config update --name pipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
 - name: Assign Public IP to the VM of gateway node
   ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.0.name }}-pip
   register: nic_pip_update
@@ -160,7 +164,7 @@
   register: nsg_create_
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
@@ -179,7 +183,7 @@
   register: nsg_inbound_create_
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
@@ -194,7 +198,7 @@
   register: nsg_outbound_create_
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
@@ -234,7 +238,7 @@
   register: vxlan_inbound_
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness
@@ -250,7 +254,7 @@
   register: vxlan_outbound_
   with_together:
   - "{{ clusters }}"
- - "{{ rg_name_.results }}"
+  - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
 # Ensure correctness

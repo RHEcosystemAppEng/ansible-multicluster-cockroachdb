@@ -23,3 +23,13 @@ pip3 install openshift pyyaml kubernetes --user
 
 
  ansible-playbook prepare-submariner.yaml  -i localhost
+
+# Problems
+
+Assign Public IP to the VM of gateway node
+
+```
+(DifferentSkuLoadBalancersAndPublicIPAddressNotAllowed) Different basic sku and standard sku load balancer or public Ip resources in availability set is not allowed /subscriptions/99d7836d-942d-4759-80b6-2ed3b80b49e9/resourceGroups/jp-test2-dc5d6-rg/providers/Microsoft.Network/loadBalancers/jp-test2-dc5d6 and /subscriptions/99d7836d-942d-4759-80b6-2ed3b80b49e9/resourceGroups/jp-test2-dc5d6-rg/providers/Microsoft.Network/publicIPAddresses/jp-test2-pip.
+Code: DifferentSkuLoadBalancersAndPublicIPAddressNotAllowed
+Message: Different basic sku and standard sku load balancer or public Ip resources in availability set is not allowed /subscriptions/99d7836d-942d-4759-80b6-2ed3b80b49e9/resourceGroups/jp-test2-dc5d6-rg/providers/Microsoft.Network/loadBalancers/jp-test2-dc5d6 and /subscriptions/99d7836d-942d-4759-80b6-2ed3b80b49e9/resourceGroups/jp-test2-dc5d6-rg/providers/Microsoft.Network/publicIPAddresses/jp-test2-pip.
+```
