@@ -11,8 +11,7 @@
 
 # - name: Prepare Managed Cluster for Azure
 #   include_tasks: prepare-azure-managed-cluster.yml
-#   loop: "{{ clusters }}"
-#   when: item.cloud == "azure"
+
 
 - name: Create submariner addon on-prem
   kubernetes.core.k8s:

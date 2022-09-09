@@ -249,7 +249,7 @@ spec:
             --certs-dir /cockroach/cockroach-certs
             --advertise-host $(hostname).{{ item.0.name }}.cockroachdb.cockroachdb.svc.clusterset.local
             --http-addr 0.0.0.0
-            --join cockroachdb-0.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt1-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt2-cwylie.cockroachdb.cockroachdb.svc.clusterset.local
+            --join cockroachdb-0.gcp-mgmt1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt1.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.gcp-mgmt2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.gcp-mgmt2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.gcp-mgmt2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.jp-test2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.jp-test2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.jp-test2.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-0.jp-test3.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-1.jp-test3.cockroachdb.cockroachdb.svc.clusterset.local,cockroachdb-2.jp-test3.cockroachdb.cockroachdb.svc.clusterset.local
             --locality=region={{ item.2.stdout }},zone={{ item.1.stdout }},dns=$(hostname -f),cloud={{ item.0.cloud }}
             --cache $(expr $MEMORY_LIMIT_MIB / 4)MiB
             --max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB
