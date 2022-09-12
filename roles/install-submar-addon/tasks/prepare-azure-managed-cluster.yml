@@ -70,6 +70,7 @@
 ############
 
 - name: Create a public IP
+  ignore_errors: yes # incase it has already been created
   ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }} --sku Standard
   register: pip_results_
   with_together:
@@ -161,6 +162,7 @@
 ############
 
 - name: Create NSG for Submariner GW
+  ignore_errors: yes # incase it has already been created
   ansible.builtin.shell: az network nsg create --name {{ item.0.name }}-nsg    --resource-group {{ item.1.stdout }}
   register: nsg_create_
   with_together:
@@ -253,7 +255,7 @@
   when: item.changed == true
 
 
-- name: NSG Rules to open VXLAN outbound port 4800/UDP -n existing NSG
+- name: NSG Rules to open VXLAN outbound port 4800/UDP in existing NSG
   ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 502 --name {{ item.0.name }}-vxlan-outbound --direction Outbound --access Allow --protocol "*" --destination-port-ranges 4800
   register: vxlan_outbound_
   with_together:
@@ -268,36 +270,3 @@
   loop: "{{ vxlan_outbound_.results }}"
   when: item.changed == true
 
-############
-## Extras ##
-############
-
-
-# - name: Find the public IP name for each Azure cluster
-#   ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }} --query "frontendIpConfigurations[].publicIpAddress.id" --out tsv | awk 'FNR==2 { print $1 }'  | awk -F '/' '{print $9}'
-#   register: ip_name_
-#   with_together:
-#   - "{{ clusters }}"
-#   - "{{ lb_name_.results }}"
-#   - "{{ rg_name_.results }}"
-#   when: item.0.cloud == "azure"
-
-# - name: Print the public ip names
-#   debug:
-#     msg: IP name {{item.stdout}}
-#   loop: "{{ ip_name_.results }}"
-#   when: item.changed == true 
-
-
-# - name: Check Azure variables
-#   debug:
-#     msg: LB={{ item.1.stdout}}  ResourceGroup={{ item.2.stdout}} NatRule={{item.0.name}}-nr NSG={{item.0.name}}-nsg IpName={{item.3.stdout}} NicName={{item.0.name}}-nic IpConfig
-#   with_together:
-#   - "{{ clusters }}"
-#   - "{{ lb_name_.results }}"
-#   - "{{ rg_name_.results }}"
-#   - "{{ ip_name_.results }}"
-#   loop_control:
-#     index_var: my_idx
-#   when: item.0.cloud == "azure"
-# pip = public ip
