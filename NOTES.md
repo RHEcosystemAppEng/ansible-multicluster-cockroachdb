@@ -1,7 +1,7 @@
 # Notes Rough Draft
 Need to bake extra networking into ansible scripts to account for Submariner when a managed cluster is azure.
 
-https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.4/html/services/services-overview#preparing-selected-hosts-to-deploy-submariner
+https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.5/html/add-ons/add-ons-overview#preparing-azure
 
 https://docs.microsoft.com/en-us/cli/azure/network/lb?view=azure-cli-latest
 
@@ -18,7 +18,7 @@ ansible-playbook install-submar-addon.yml  -i localhost
 Prereqs
 
 ```bash
-pip3 install openshift pyyaml kubernetes --user
+pip3 install openshift pyyaml kubernetes jmespath --user
 ```
 
 

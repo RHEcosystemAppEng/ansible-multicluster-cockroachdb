@@ -6,7 +6,8 @@
 #############
 
 - name: Find LoadBalancer name for each Azure cluster
-  ansible.builtin.shell: az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
+  ansible.builtin.shell: az network lb list |  grep {{ item.name }} | grep name | grep internal | sed 's/ //g; s/"//g; s/,//g; s/name://g' 
+  #az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
   register: lb_name_
   loop: "{{ clusters }}"
   when: item.cloud == "azure"
@@ -69,7 +70,7 @@
 ############
 
 # - name: Create a public IP
-#   ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
+#   ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}  --sku Standard
 #   register: pip_results_
 #   with_together:
 #   - "{{ clusters }}"

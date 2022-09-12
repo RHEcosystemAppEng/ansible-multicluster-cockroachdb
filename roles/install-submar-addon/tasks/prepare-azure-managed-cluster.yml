@@ -7,6 +7,7 @@
 
 - name: Find LoadBalancer name for each Azure cluster
   ansible.builtin.shell: az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
+  # az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
   register: lb_name_
   loop: "{{ clusters }}"
   when: item.cloud == "azure"
@@ -69,7 +70,7 @@
 ############
 
 - name: Create a public IP
-  ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }}
+  ansible.builtin.shell: az network public-ip create --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }} --sku Standard
   register: pip_results_
   with_together:
   - "{{ clusters }}"
@@ -178,8 +179,10 @@
 ## Step 4 ##
 ############
 
+# az network nsg rule create  --resource-group  jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501  --name jp-test2-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4500 4490 8080 8181
+# az network nsg create  --resource-group  jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501  --name jp-test2-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
 - name: NSG Rule to open Inbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
+  ansible.builtin.shell: az network nsg rule create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4500 4490 8080 8181
   register: nsg_inbound_create_
   with_together:
   - "{{ clusters }}"
@@ -194,7 +197,7 @@
   when: item.changed == true
 
 - name: NSG Rule to open Outbound ports 4500,4490, and 8080 for Submariner 
-  ansible.builtin.shell: az network nsg create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
+  ansible.builtin.shell: az network nsg rule create  -g {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-outbound --direction Outbound --access Allow --protocol "*" --destination-port-ranges 4500 4490 8080 8181
   register: nsg_outbound_create_
   with_together:
   - "{{ clusters }}"
@@ -232,9 +235,10 @@
 ############
 ## Step 6 ##
 ############
-
+# jp-test2-dc5d6-rg
+# az network nsg rule create --resource-group jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501 --name jp-test2-vxlan-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4800
 - name: NSG Rules to open VXLAN inbound port 4800/UDP -n existing NSG
-  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4800
+  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 502 --name {{ item.0.name }}-vxlan-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4800
   register: vxlan_inbound_
   with_together:
   - "{{ clusters }}"
@@ -250,7 +254,7 @@
 
 
 - name: NSG Rules to open VXLAN outbound port 4800/UDP -n existing NSG
-  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501 --name {{ item.0.name }}-vxlan-outbound --direction Outbound --access Allow --protocol * --destination-port-ranges 4800
+  ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 502 --name {{ item.0.name }}-vxlan-outbound --direction Outbound --access Allow --protocol "*" --destination-port-ranges 4800
   register: vxlan_outbound_
   with_together:
   - "{{ clusters }}"

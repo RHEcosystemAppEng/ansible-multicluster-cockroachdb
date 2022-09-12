@@ -45,7 +45,8 @@
   when: checkgit != ""
 
 - name: git push
-  ansible.builtin.shell: git push --force
+  # ansible.builtin.shell: git push --force
+  ansible.builtin.shell: git push --force --set-upstream origin azure-dev
   args:
    chdir: "{{ playbook_dir }}"
   when: checkgit != ""
