@@ -39,6 +39,7 @@ cockroach: /usr/local/bin/cockroach
 ### Git variables ###
 
 git_url: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
+# This must be main or the ansible-git and git-clean roles will need to be rewritten
 git_branch: 'main'
 git_msg: 'update files with ansible'
 git_remove_local: false
