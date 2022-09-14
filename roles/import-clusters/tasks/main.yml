@@ -15,7 +15,7 @@
     wait_sleep: 15
     wait_timeout: 400
 
-- name: Create cockroachdb namespaces for managed clusters
+- name: Create namespaces for managed clusters
   kubernetes.core.k8s:
     wait: yes
     state: present

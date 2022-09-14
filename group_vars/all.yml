@@ -2,7 +2,7 @@
 clusters:
   - {name: gcp-mgmt1, contexts: gcp-mgmt1, cloud: gcp}
   - {name: gcp-mgmt2, contexts: gcp-mgmt2, cloud: gcp}
-  - {name: jp-test2, contexts: jp-test2, cloud: azure}
+  # - {name: az-useast-mgmt1, contexts: az-useast-mgmt1, cloud: azure}
 
 # ACM Version
 acm_version: 2.4
@@ -39,7 +39,7 @@ cockroach: /usr/local/bin/cockroach
 ### Git variables ###
 
 git_url: git@github.com:cmwylie19/ansible-multicluster-cockroachdb.git
-git_branch: 'azure-dev'
+git_branch: 'main'
 git_msg: 'update files with ansible'
 git_remove_local: false
 git_username: ansible_git
@@ -53,7 +53,7 @@ ir_username:
 ### Git credentials ###
 
 # Git ssh environemnt variable need to be set 
-#GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
+# export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
 # example: export GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
 
 ### Resources ###
