@@ -20,7 +20,7 @@ The automation will do the following:
     - Running openshift = 4.9.9
   - 2 or more clusters will be imported as managed clusters and connected via the submariner-addon
   - Managed clusters Pod and Service Classless Inter-Domain Routing (CIDR) between the clusters that do not overlap
-  - Your kubeconfig contexts must have the necessary permissions sets to create the kuberenetes objects needed for the automation
+  - Your kubeconfig contexts must have the necessary permissions sets to create the kubernetes objects needed for the automation
 ## Automation Requirements
 
 [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html "Ansible installation requirements") >= 2.11 - This includes all requirements needed for ansible and modules
@@ -28,7 +28,7 @@ The automation will do the following:
 -  Modules
    
    - [k8s](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html#ansible-collections-kubernetes-core-k8s-module "k8s module") - To install it, use: `ansible-galaxy collection install kubernetes.core`
-   - [k8_info](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_info_module.html#ansible-collections-kubernetes-core-k8s-info-module "k8_infor module") - comes with the install of kubernetes.core
+   - [k8_info](https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_info_module.html#ansible-collections-kubernetes-core-k8s-info-module "k8_info module") - comes with the install of kubernetes.core
 
 [kubectl](https://kubernetes.io/docs/tasks/tools/ "kubectl install") - The Kubernetes command-line tool
 
