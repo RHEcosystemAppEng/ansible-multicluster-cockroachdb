@@ -56,7 +56,7 @@ Add environment variables:
 | IR_PASSWORD | image registry password
 
 For Azure managed clusters:
-- must have an `~/.azure/osServicePrincipal.json` with with admission permissions for the automation to configure the network
+- must have an `~/.azure/osServicePrincipal.json` with with admin permissions for the automation to configure the network
 
 Modify variables in **group_vars/all.yml**:
 
@@ -70,13 +70,12 @@ Modify variables in **group_vars/all.yml**:
 | az | The path to your ([Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)) 
 | cockroach | The path to your [cockroachdb CLI](https://www.cockroachlabs.com/docs/releases/index.html#production-releases)
 | git_url | Your repo location in ssh format
-| git_branch | Defaults to master
+| git_branch | Must always be main. You cannot change this at this time.
 | git_msg | Defaults to "update files with ansible" is the message sent when automation pushes 
 | git_remove_local | Defaults to false
 | git_username | Defaults to ansible_git your username for github
 | git_email | Defaults to ansible_git@ansible.com the email associated with your github account
 | Resources | Resources for the `pod.spec.containers.resources` and `volumeClaimTemplate.spec.resources.requests.storage`
-| ir_username | username for image [registry](https://access.redhat.com/terms-based-registry/)
 
 ## Usage
 | Description | Command |

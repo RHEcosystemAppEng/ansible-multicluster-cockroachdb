@@ -47,7 +47,6 @@ git_username: ansible_git
 git_email: ansible_git@ansible.com
 
 ### Image Registry credentials ###
-ir_username: 
 # export IR_PASSWORD="$(cat ~/.ir_password)"
 
 

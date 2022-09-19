@@ -462,7 +462,7 @@
     search_string: 'storage:'
     line: '          storage: "{%raw%}{{ volumeClaimTemplates_storage }}{%endraw%}"'
 
-# Finale templating
+# Final templating
 - name: Template a file to /etc/file.conf on-prem
   ansible.builtin.template:
     src: "{{ role_path }}/templates/cockroachdb-statefulset-secure-on-prem.yml"

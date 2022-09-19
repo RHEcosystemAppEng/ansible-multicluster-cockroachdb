@@ -1,13 +1,18 @@
 # Docs found:
 # https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.5/html/add-ons/add-ons-overview#preparing-azure
 
+# Currently assuming az is installed in the PATH
+- name: set default for az
+  set_fact: 
+    az: /usr/local/bin/az
+  when: az is not defined
+
 #############
 ## Prereqs ##
 #############
 
 - name: Find LoadBalancer name for each Azure cluster
   ansible.builtin.shell: az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
-  # az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
   register: lb_name_
   loop: "{{ clusters }}"
   when: item.cloud == "azure"
@@ -24,7 +29,7 @@
   loop: "{{ clusters }}"
   when: item.cloud == "azure"
 
-# Ensure correctness
+
 - name: Print the RG names
   debug:
     msg: Resource Group {{item.stdout}}
@@ -38,7 +43,7 @@
   register: no_name_
   when: item.cloud == "azure"
 
-# Ensure correctness
+
 - name: Print the Node names
   debug:
     msg: Node Names {{ item.stdout }}
@@ -58,7 +63,7 @@
   register: label_results_
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Print the Node label results
   debug:
     msg: Node label results {{ item.stdout }}
@@ -78,14 +83,13 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Create the public ip results
   debug:
     msg: Create Public IP Results {{ item.stdout }}
   loop: "{{ pip_results_.results }}"
   when: item.changed == true
 
-# az network lb show -n jp-test2-dc5d6 -g jp-test2-dc5d6-rg  | grep nic | grep jp-test2-dc5d6-worker-centralus1-dqrdl | grep -v '"id"' | sed 's/"//g' | sed 's/name: //g' | sed 's/ //g' | sed 's/,//g'
 - name: Find the NIC Name of the gateway Node
   ansible.builtin.shell: az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} | grep nic | grep -v '"name"' | sed 's/ //g' | sed 's/id//g' | sed 's/"//g' | sed 's/://g' | awk 'FNR == 1 { print $1 }' | awk -F '/' '{print $9}'
   register: nic_name_
@@ -96,7 +100,7 @@
   - "{{ no_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Display NIC Name gateway nodes
   debug:
     msg: Nic Name {{ item.stdout }}
@@ -112,7 +116,7 @@
   - "{{ nic_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Display NIC interface addresses
   debug:
     msg: Nic interface address {{ item.stdout }}
@@ -121,7 +125,6 @@
 
 - name: Find NIC PIP Config of gateway nodes
   ansible.builtin.shell: az network nic ip-config list  --resource-group {{ item.2.stdout }}  --nic-name {{ item.1.stdout }}   | jq -r '.[0] | .name'
-  #az network lb show -g {{ item.2.stdout }}  -n {{ item.1.stdout }}  | grep nic | grep {{ item.3.stdout }} |  grep -v '"id"' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g'  | sed 's/,//g' 
   register: nic_pip_name_
   with_together:
   - "{{ clusters }}"
@@ -130,16 +133,13 @@
   - "{{ no_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Display NIC PIP of gateway nodes
   debug:
     msg: Nic PIP Results {{ item.stdout }}
   loop: "{{ nic_pip_name_.results }}"
   when: item.changed == true
 
-# az network nic ip-config update --name jp-test2-dc5d6-rg_jp-test2-dc5d6-worker-centralus1-dqrdl-nicpipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
-# az network nic ip-config list  --resource-group jp-test2-dc5d6-rg  --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic | jq -r '.[0] | .name'
-# # az network nic ip-config update --name pipConfig --nic-name jp-test2-dc5d6-worker-centralus1-dqrdl-nic  --resource-group jp-test2-dc5d6-rg  --public-ip-address jp-test2-pip
 - name: Assign Public IP to the VM of gateway node
   ansible.builtin.shell: az network nic ip-config update --name {{ item.1.stdout }} --nic-name {{ item.3.stdout }}  --resource-group {{ item.2.stdout }}  --public-ip-address {{ item.0.name }}-pip
   register: nic_pip_update
@@ -150,7 +150,7 @@
   - "{{ nic_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Display NIC PIP config update results
   debug:
     msg: Assign Public IP to gateway node Results {{ item.stdout }}
@@ -170,7 +170,7 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Display created network security groups 
   debug:
     msg: Created NSG {{ item.stdout }}
@@ -181,8 +181,6 @@
 ## Step 4 ##
 ############
 
-# az network nsg rule create  --resource-group  jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501  --name jp-test2-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4500 4490 8080 8181
-# az network nsg create  --resource-group  jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501  --name jp-test2-inbound --direction Inbound --access Allow --protocol * --destination-port-ranges 4500 4490 8080 8181
 - name: NSG Rule to open Inbound ports 4500,4490, and 8080 for Submariner 
   ansible.builtin.shell: az network nsg rule create  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 501  --name {{ item.0.name }}-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4500 4490 8080 8181
   register: nsg_inbound_create_
@@ -191,7 +189,7 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Check NSG Inbound Rules 
   debug:
     msg: NSG Inbound Rules results {{ item.stdout }}
@@ -206,7 +204,7 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Check NSG Outbound Rules 
   debug:
     msg: NSG Outbound Rules results {{ item.stdout }}
@@ -227,7 +225,7 @@
   - "{{ nic_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Output from attach Security Group to VM Interface
   debug:
     msg: Attach Security group to vm inteface results {{ item.stdout }}
@@ -237,8 +235,7 @@
 ############
 ## Step 6 ##
 ############
-# jp-test2-dc5d6-rg
-# az network nsg rule create --resource-group jp-test2-dc5d6-rg --nsg-name jp-test2-nsg --priority 501 --name jp-test2-vxlan-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4800
+
 - name: NSG Rules to open VXLAN inbound port 4800/UDP -n existing NSG
   ansible.builtin.shell: az network nsg rule create --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --priority 502 --name {{ item.0.name }}-vxlan-inbound --direction Inbound --access Allow --protocol "*" --destination-port-ranges 4800
   register: vxlan_inbound_
@@ -247,7 +244,7 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Output VXLAN inbound port
   debug:
     msg: VXLAN inbound port results {{ item.stdout }}
@@ -263,7 +260,7 @@
   - "{{ rg_name_.results }}"
   when: item.0.cloud == "azure"
 
-# Ensure correctness
+
 - name: Output VXLAN outbound port
   debug:
     msg: VXLAN inbound port results {{ item.stdout }}
