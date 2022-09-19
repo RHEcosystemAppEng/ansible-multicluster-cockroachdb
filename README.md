@@ -90,3 +90,5 @@ or command can be run one by one for more control:
 - `ansible-playbook -i localhost create-clusterset`
 - `ansible-playbook -i localhost install-submar-addon.yml`
 - `ansible-playbook -i localhost install-multi-cockroachdb.yml`
+
+**Please note:** Due to the nature of ACM, this is a very slow process. I recommend running the plays one by one, letting them  finish individually for best results. It can take 15-20 for a single play to finish depending on how many clusters are preset. The uninstallation, removing a `ManagedCluster` in ACM can take many hours. The installation add files to this repository used in the automation - after an installation the uninstall **MUST** run to clean up the repository.
