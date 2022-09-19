@@ -14,7 +14,7 @@ cockroachdb_version: "v21.2.2"
 
 # GCP credentials set to environment variables:
 # OCP_SERVICE_ACCOUNT
-# ex. export OCP_SERVICE_ACCOUNT=$(cat ~/.gcp/osServiceAccount.json
+# ex. export OCP_SERVICE_ACCOUNT=$(cat ~/.gcp/osServiceAccount.json)
 
 # Hub context - set to the name of cluster for ACM and hub install
 hub_context: hub
@@ -48,7 +48,7 @@ git_email: ansible_git@ansible.com
 
 # Git ssh environemnt variable need to be set 
 # GIT_SSH_COMMAND
-# export GIT_SSH_COMMAND="ssh -i /pathToYour/.ssh/id_rsa"
+# export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
 
 ### Resources ###
 

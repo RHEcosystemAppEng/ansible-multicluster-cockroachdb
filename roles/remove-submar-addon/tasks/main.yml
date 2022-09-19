@@ -80,6 +80,94 @@
   loop: "{{ clusters }}"
   when: item.cloud == "aws"
 
+# Azure pre-delete
+- name: Find LoadBalancer name for each Azure cluster
+  ansible.builtin.shell: az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
+  # az network lb list |  grep {{ item.name }} | egrep -v "internal|resourceGroup|id|nic" | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
+  register: lb_name_
+  loop: "{{ clusters }}"
+  when: item.cloud == "azure"
+
+# Azure pre-delete
+- name: Find the resource groups for each Azure cluster
+  ansible.builtin.shell: az network lb list | grep {{ item.name }} | grep -e -rg | egrep -v '"id":|nic|master' | awk 'FNR == 1 { print $2   }' | sed 's/"//g' | sed 's/,//g'
+  register: rg_name_
+  loop: "{{ clusters }}"
+  when: item.cloud == "azure"
+
+# Azure pre-delete
+- name: Find first worker node on Azure cluster
+  ansible.builtin.shell: kubectl get no --context {{ item.contexts }} -l node-role.kubernetes.io/worker --no-headers | awk 'FNR == 1 { print $1 }'
+  loop: "{{ clusters }}"
+  register: no_name_
+  when: item.cloud == "azure"
+
+
+# Azure Delete
+- name: Delete NSG Rules VXLAN inbound port 4800/UDP in existing NSG
+  ansible.builtin.shell: az network nsg rule delete --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --name {{ item.0.name }}-vxlan-inbound 
+  register: vxlan_inbound_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Delete NSG Rule VXLAN outbound port 4800/UDP in existing NSG
+  ansible.builtin.shell: az network nsg rule delete --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --name {{ item.0.name }}-vxlan-outbound
+  register: vxlan_outbound_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Delete NSG Rule to open Inbound ports 4500,4490, and 8080
+  ansible.builtin.shell: az network nsg rule delete  --resource-group {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --name {{ item.0.name }}-inbound
+  register: nsg_inbound_create_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Delete NSG Rule Outbound ports 4500,4490, and 8080
+  ansible.builtin.shell: az network nsg rule delete  -g {{ item.1.stdout }} --nsg-name {{ item.0.name }}-nsg --name {{ item.0.name }}-outbound
+  register: nsg_outbound_create_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Delete the public IP
+  ignore_errors: yes
+  ansible.builtin.shell: az network public-ip delete --name {{ item.0.name}}-pip --resource-group {{ item.1.stdout }} --sku Standard
+  register: pip_results_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Unlabel nodes as gateway nodes
+  ansible.builtin.shell: kubectl label no {{ item.1.stdout }} "submariner.io/gateway-" --overwrite --context {{ item.0.contexts }}
+  with_together:
+  - "{{ clusters }}"
+  - "{{ no_name_.results }}"
+  register: label_results_
+  when: item.0.cloud == "azure"
+
+# Azure Delete
+- name: Delete NSG for Submariner GW
+  ignore_errors: yes
+  ansible.builtin.shell: az network nsg delete --name {{ item.0.name }}-nsg --resource-group {{ item.1.stdout }}
+  register: nsg_create_
+  with_together:
+  - "{{ clusters }}"
+  - "{{ rg_name_.results }}"
+  when: item.0.cloud == "azure"
+
 - name: Pause and wait to delete clusterset
   pause:
     seconds: 20

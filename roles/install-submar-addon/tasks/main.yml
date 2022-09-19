@@ -4,10 +4,14 @@
     kubectl: /usr/local/bin/kubectl
   when: kubectl is not defined
 
-- name: Check amount of clusters
-  include_role:
-    name: install-multi-cockroachdb
-    tasks_from: pre_validation
+# - name: Check amount of clusters
+#   include_role:
+#     name: install-multi-cockroachdb
+#     tasks_from: pre_validation
+
+- name: Prepare Managed Cluster for Azure
+  include_tasks: prepare-azure-managed-cluster.yml
+
 
 - name: Create submariner addon on-prem
   kubernetes.core.k8s:
